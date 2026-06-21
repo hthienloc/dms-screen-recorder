@@ -307,6 +307,11 @@ PluginSettings {
                 }
 
                 CopyBox {
+                    label: I18n.tr("Toggle Saved Region Recording")
+                    text: "dms ipc screenRecorderLH toggleSavedRegion"
+                }
+
+                CopyBox {
                     label: I18n.tr("Toggle Active Window Selection (Portal)")
                     text: "dms ipc screenRecorderLH toggleWindow"
                 }

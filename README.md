@@ -48,6 +48,9 @@ dms ipc screenRecorderLH toggleScreen
 # Toggle interactive custom region selection and recording
 dms ipc screenRecorderLH toggleRegion
 
+# Toggle recording of the saved region geometry (defined in Settings)
+dms ipc screenRecorderLH toggleSavedRegion
+
 # Toggle specific window selection and recording (via Portal)
 dms ipc screenRecorderLH toggleWindow
 

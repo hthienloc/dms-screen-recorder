@@ -439,6 +439,40 @@ PluginComponent {
             }
         }
 
+        function startSavedRegion(): string {
+            if (root.isRecording) return "ALREADY_RECORDING";
+            
+            var geom = root.regionGeometry;
+            var match = geom.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
+            if (match) {
+                var w = parseInt(match[1]) || 0;
+                var h = parseInt(match[2]) || 0;
+                var x = parseInt(match[3]) || 0;
+                var y = parseInt(match[4]) || 0;
+                
+                if (w % 2 !== 0) w--;
+                if (h % 2 !== 0) h--;
+                
+                if (w < 2) w = 2;
+                if (h < 2) h = 2;
+                
+                geom = w + "x" + h + "+" + x + "+" + y;
+                root.regionGeometry = geom;
+            }
+            
+            root.proceedToRecord("region", geom);
+            return "STARTED";
+        }
+
+        function toggleSavedRegion(): string {
+            if (root.isRecording) {
+                root.stopRecording();
+                return "STOPPED";
+            } else {
+                return startSavedRegion();
+            }
+        }
+
         function slurpSuccess(): string {
             Proc.runCommand("screenRecorder.readSlurpGeom", ["cat", "/tmp/dms_slurp_geom.txt"], (stdout, exitCode) => {
                 if (exitCode === 0 && stdout) {
