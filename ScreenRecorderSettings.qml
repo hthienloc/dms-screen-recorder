@@ -25,6 +25,7 @@ PluginSettings {
             description: I18n.tr("Where recorded videos will be saved.")
             defaultValue: "~/Videos/Recordings"
             placeholder: "~/Videos/Recordings"
+            isDirectory: true
         }
 
         SettingsDivider {}
