@@ -29,20 +29,23 @@ git clone https://github.com/hthienloc/dms-screen-recorder ~/.config/DankMateria
 - `ffmpeg` (for thumbnail extraction)
 - `notify-send` (for desktop notifications)
 
-## Wayland Cursor Hiding & KMS Note (Important)
+## Wayland Cursor Hiding & KMS Notes
 
-- **Screen Mode (`-w screen` / KMS Capture)**: KMS capture requires special capabilities to interact with the display compositor directly:
-  ```bash
-  sudo setcap cap_sys_admin+ep /usr/bin/gsr-kms-server
-  ```
-- **Window Mode (`-w portal` / Portal Capture)**: 
-  > [!IMPORTANT]
-  > Do **not** apply `setcap` to `/usr/bin/gpu-screen-recorder` itself. Doing so will make it a privileged process, blocking `xdg-desktop-portal` (running under your normal user namespace) from verifying it. This will cause window selection to fail with `Portal operation not allowed`.
-  >
-  > If you have previously applied it, remove it via:
-  > ```bash
-  > sudo setcap -r /usr/bin/gpu-screen-recorder
-  > ```
+### Screen Mode (`-w screen`)
+KMS capture requires special capabilities to interact with the display compositor directly:
+```bash
+sudo setcap cap_sys_admin+ep /usr/bin/gsr-kms-server
+```
+
+### Window Mode (`-w portal`)
+
+> [!IMPORTANT]
+> Do **not** apply `setcap` to `/usr/bin/gpu-screen-recorder` itself. Doing so will make it a privileged process, blocking `xdg-desktop-portal` (running under your normal user namespace) from verifying it. This causes window selection to fail with `Portal operation not allowed`.
+>
+> If you have previously applied it, remove it via:
+> ```bash
+> sudo setcap -r /usr/bin/gpu-screen-recorder
+> ```
 
 ## CLI Control via IPC
 
