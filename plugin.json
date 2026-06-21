@@ -5,19 +5,16 @@
   "version": "1.0.0",
   "author": "Loc Huynh",
   "icon": "videocam",
-  "type": [
-    "daemon",
-    "widget"
-  ],
+  "type": "composite",
   "capabilities": [
+    "daemon",
     "control-center",
     "ipc"
   ],
   "components": {
-    "daemon": "./ScreenRecorderWidget.qml",
+    "daemon": "./ScreenRecorderDaemon.qml",
     "widget": "./ScreenRecorderWidget.qml"
   },
-  "component": "./ScreenRecorderWidget.qml",
   "settings": "./ScreenRecorderSettings.qml",
   "permissions": [
     "settings_read",

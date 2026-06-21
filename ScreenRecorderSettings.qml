@@ -62,10 +62,10 @@ PluginSettings {
             label: I18n.tr("Framerate")
             description: I18n.tr("Number of frames per second to record.")
             options: [
-                { label: "30 FPS", value: 30 },
-                { label: "60 FPS", value: 60 }
+                { label: "30 FPS", value: "30" },
+                { label: "60 FPS", value: "60" }
             ]
-            defaultValue: 60
+            defaultValue: "60"
         }
     }
 
