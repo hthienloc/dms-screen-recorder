@@ -31,6 +31,15 @@ PluginComponent {
         onTriggered: blinkOn = !blinkOn
     }
 
+    Timer {
+        id: recordingDelayTimer
+        interval: 150
+        repeat: false
+        onTriggered: {
+            if (daemon) daemon.startRecording();
+        }
+    }
+
     // CC integration
     ccWidgetIcon: "videocam"
     ccWidgetPrimaryText: I18n.tr("Screen Recorder")
@@ -646,8 +655,8 @@ PluginComponent {
                         buttonHeight: 40
                         anchors.horizontalCenter: parent.horizontalCenter
                         onClicked: {
-                            if (daemon) daemon.startRecording();
                             popoutComp.closePopout();
+                            recordingDelayTimer.start();
                         }
                     }
 
