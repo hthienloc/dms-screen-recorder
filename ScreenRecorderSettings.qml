@@ -421,12 +421,7 @@ PluginSettings {
             }
 
             CopyBox {
-                label: I18n.tr("Toggle Active Window Selection (Portal)")
-                text: "dms ipc screenRecorderLH toggleWindow"
-            }
-
-            CopyBox {
-                label: I18n.tr("Toggle Portal Selection")
+                label: I18n.tr("Toggle Window Selection (Portal)")
                 text: "dms ipc screenRecorderLH togglePortal"
             }
 

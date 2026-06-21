@@ -499,12 +499,6 @@ PluginComponent {
             return "STARTED";
         }
 
-        function startWindow(): string {
-            if (root.isRecording) return "ALREADY_RECORDING";
-            root.startRecording("window");
-            return "STARTED";
-        }
-
         function startPortal(): string {
             if (root.isRecording) return "ALREADY_RECORDING";
             root.startRecording("portal");
@@ -537,16 +531,6 @@ PluginComponent {
                 return "STOPPED";
             } else {
                 root.startRecording("region");
-                return "STARTED";
-            }
-        }
-
-        function toggleWindow(): string {
-            if (root.isRecording) {
-                root.stopRecording();
-                return "STOPPED";
-            } else {
-                root.startRecording("window");
                 return "STARTED";
             }
         }
