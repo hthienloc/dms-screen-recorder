@@ -10,7 +10,7 @@ import qs.Modules.Plugins
 PluginComponent {
     id: root
 
-    pluginId: "screenRecorder"
+    pluginId: "screenRecorderLH"
     pluginService: PluginService
 
     property bool isRecording: false
@@ -279,7 +279,7 @@ PluginComponent {
     }
 
     IpcHandler {
-        target: "screenRecorder"
+        target: "screenRecorderLH"
 
         function start(sourceType): string {
             if (root.isRecording) return "ALREADY_RECORDING";

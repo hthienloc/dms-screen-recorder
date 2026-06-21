@@ -11,9 +11,9 @@ import qs.Services
 
 PluginSettings {
     id: rootSettings
-    pluginId: "screenRecorder"
+    pluginId: "screenRecorderLH"
 
-    readonly property var daemon: PluginService.getGlobalVar("screenRecorder", "instance")
+    readonly property var daemon: PluginService.getGlobalVar("screenRecorderLH", "instance")
 
     SettingsCard {
         SectionTitle {

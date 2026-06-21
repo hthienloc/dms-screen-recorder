@@ -12,7 +12,7 @@ import "./dms-common"
 PluginComponent {
     id: root
 
-    pluginId: "screenRecorder"
+    pluginId: "screenRecorderLH"
     pluginService: PluginService
 
     readonly property var daemon: PluginService.getGlobalVar(pluginId, "instance")

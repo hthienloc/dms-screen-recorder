@@ -1,5 +1,5 @@
 {
-  "id": "screenRecorder",
+  "id": "screenRecorderLH",
   "name": "Screen Recorder",
   "description": "Wayland screen recorder using gpu-screen-recorder.",
   "version": "1.0.0",
