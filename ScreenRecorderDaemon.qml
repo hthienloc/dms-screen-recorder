@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Io
 import qs.Common
 import qs.Services
@@ -43,6 +44,22 @@ PluginComponent {
     property string regionGeometry: pluginData.regionGeometry ?? "1028x768+100+100"
     property var monitorsList: [{"label": I18n.tr("First Monitor Found"), "value": "all", "width": 1920, "height": 1080}]
 
+    property string activeRecordingMode: ""
+    property int regionX: 0
+    property int regionY: 0
+    property int regionW: 0
+    property int regionH: 0
+
+    onRegionGeometryChanged: {
+        var match = regionGeometry.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
+        if (match) {
+            regionW = parseInt(match[1]) || 0;
+            regionH = parseInt(match[2]) || 0;
+            regionX = parseInt(match[3]) || 0;
+            regionY = parseInt(match[4]) || 0;
+        }
+    }
+
 
     property bool gpuScreenRecorderMissing: false
 
@@ -65,6 +82,7 @@ PluginComponent {
                 root.recordingState = "idle";
                 root.isRecording = false;
                 root.isPaused = false;
+                root.activeRecordingMode = "";
             }
         }
     }
@@ -107,6 +125,7 @@ PluginComponent {
             root.recordingState = "idle";
             root.isRecording = false;
             root.isPaused = false;
+            root.activeRecordingMode = "";
 
             if (root.isCancelling) {
                 // Delete the partial/finalized file and suppress notification
@@ -298,6 +317,7 @@ PluginComponent {
             recorderProcess.running = true;
             
             root.recordingState = "starting";
+            root.activeRecordingMode = activeMode;
             
             safetyTimer.restart();
         });
@@ -329,6 +349,7 @@ PluginComponent {
         root.recordingState = "idle";
         root.isRecording = false;
         root.isPaused = false;
+        root.activeRecordingMode = "";
 
         // SIGKILL prevents gpu-screen-recorder from finalizing the file;
         // file deletion happens in onExited after process is confirmed dead.
@@ -545,5 +566,74 @@ PluginComponent {
     Component.onCompleted: {
         PluginService.setGlobalVar(pluginId, "instance", root);
         refreshMonitors();
+        // Parse initial region geometry
+        var match = regionGeometry.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
+        if (match) {
+            regionW = parseInt(match[1]) || 0;
+            regionH = parseInt(match[2]) || 0;
+            regionX = parseInt(match[3]) || 0;
+            regionY = parseInt(match[4]) || 0;
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+        delegate: PanelWindow {
+            required property var modelData
+            screen: modelData
+            
+            // Only visible when recording is active and the active mode is region
+            visible: root.isRecording && root.activeRecordingMode === "region"
+            color: "transparent"
+            
+            WlrLayershell.namespace: "dms:screen-recorder-overlay"
+            WlrLayershell.layer: WlrLayershell.Overlay
+            WlrLayershell.exclusiveZone: -1
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+            
+            mask: Region {}
+            
+            anchors {
+                left: true
+                right: true
+                top: true
+                bottom: true
+            }
+
+            Rectangle {
+                // Determine screen-local overlap
+                x: root.regionX - modelData.x
+                y: root.regionY - modelData.y
+                width: root.regionW
+                height: root.regionH
+                color: "transparent"
+                
+                // Only show if the geometry actually overlaps this screen
+                visible: (x + width > 0) && (x < modelData.width) && (y + height > 0) && (y < modelData.height)
+
+                Canvas {
+                    id: borderCanvas
+                    anchors.fill: parent
+                    
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+                        ctx.strokeStyle = Theme.primary; // Custom color for visualizer
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([8, 6]);
+                        ctx.strokeRect(1.5, 1.5, width - 3, height - 3);
+                    }
+                    
+                    onWidthChanged: requestPaint()
+                    onHeightChanged: requestPaint()
+                }
+
+                SequentialAnimation on opacity {
+                    loops: Animation.Infinite
+                    NumberAnimation { from: 1.0; to: 0.3; duration: 800; easing.type: Easing.InOutQuad }
+                    NumberAnimation { from: 0.3; to: 1.0; duration: 800; easing.type: Easing.InOutQuad }
+                }
+            }
+        }
     }
 }
