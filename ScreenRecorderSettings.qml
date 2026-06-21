@@ -67,6 +67,15 @@ PluginSettings {
             ]
             defaultValue: "60"
         }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "blinkRecordDot"
+            label: I18n.tr("Blink Recording Dot")
+            description: I18n.tr("Blink the red recording status dot in the bar widget.")
+            defaultValue: false
+        }
     }
 
     PluginAbout {

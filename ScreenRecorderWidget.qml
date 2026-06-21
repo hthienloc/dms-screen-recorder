@@ -15,6 +15,7 @@ PluginComponent {
     pluginService: PluginService
 
     readonly property var daemon: PluginService.getGlobalVar(pluginId, "instance")
+    readonly property bool blinkRecordDot: pluginData.blinkRecordDot ?? false
 
     // Blinking Timer for recording dot
     Timer {
@@ -77,7 +78,7 @@ PluginComponent {
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
                     size: Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
-                    opacity: daemon && daemon.isRecording ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0
+                    opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -87,6 +88,7 @@ PluginComponent {
                     color: Theme.surfaceText
                     font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.Medium
+                    font.family: "monospace"
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -155,7 +157,7 @@ PluginComponent {
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
                     size: Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
-                    opacity: daemon && daemon.isRecording ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0
+                    opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
@@ -164,6 +166,7 @@ PluginComponent {
                     text: daemon ? daemon.formatDuration(daemon.recordingSeconds) : "00:00"
                     color: Theme.surfaceText
                     font.pixelSize: Theme.fontSizeSmall
+                    font.family: "monospace"
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
