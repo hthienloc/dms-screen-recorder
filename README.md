@@ -42,17 +42,17 @@ When disabling **Show Cursor**:
 You can trigger and control the screen recorder directly from the command line using DankMaterialShell IPC commands:
 
 ```bash
-# Start full screen recording
-dms ipc screenRecorderLH startScreen
+# Toggle full screen recording
+dms ipc screenRecorderLH toggleScreen
 
-# Start interactive custom region selection and recording
-dms ipc screenRecorderLH startRegion
+# Toggle interactive custom region selection and recording
+dms ipc screenRecorderLH toggleRegion
 
-# Start specific window selection and recording (via Portal)
-dms ipc screenRecorderLH startWindow
+# Toggle specific window selection and recording (via Portal)
+dms ipc screenRecorderLH toggleWindow
 
-# Start portal selection and recording
-dms ipc screenRecorderLH startPortal
+# Toggle portal selection and recording
+dms ipc screenRecorderLH togglePortal
 
 # Stop recording
 dms ipc screenRecorderLH stop

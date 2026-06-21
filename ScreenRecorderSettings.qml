@@ -297,23 +297,23 @@ PluginSettings {
                 spacing: Theme.spacingS
 
                 CopyBox {
-                    label: I18n.tr("Start Full Screen Recording")
-                    text: "dms ipc screenRecorderLH startScreen"
+                    label: I18n.tr("Toggle Full Screen Recording")
+                    text: "dms ipc screenRecorderLH toggleScreen"
                 }
 
                 CopyBox {
-                    label: I18n.tr("Start Custom Region Selection")
-                    text: "dms ipc screenRecorderLH startRegion"
+                    label: I18n.tr("Toggle Custom Region Selection")
+                    text: "dms ipc screenRecorderLH toggleRegion"
                 }
 
                 CopyBox {
-                    label: I18n.tr("Start Active Window Selection (Portal)")
-                    text: "dms ipc screenRecorderLH startWindow"
+                    label: I18n.tr("Toggle Active Window Selection (Portal)")
+                    text: "dms ipc screenRecorderLH toggleWindow"
                 }
 
                 CopyBox {
-                    label: I18n.tr("Start Portal Selection")
-                    text: "dms ipc screenRecorderLH startPortal"
+                    label: I18n.tr("Toggle Portal Selection")
+                    text: "dms ipc screenRecorderLH togglePortal"
                 }
 
                 CopyBox {

@@ -368,6 +368,56 @@ PluginComponent {
             return "STARTED";
         }
 
+        function toggle(sourceType): string {
+            if (root.isRecording) {
+                root.stopRecording();
+                return "STOPPED";
+            } else {
+                root.startRecording(sourceType);
+                return "STARTED";
+            }
+        }
+
+        function toggleScreen(): string {
+            if (root.isRecording) {
+                root.stopRecording();
+                return "STOPPED";
+            } else {
+                root.startRecording("screen");
+                return "STARTED";
+            }
+        }
+
+        function toggleRegion(): string {
+            if (root.isRecording) {
+                root.stopRecording();
+                return "STOPPED";
+            } else {
+                root.startRecording("region");
+                return "STARTED";
+            }
+        }
+
+        function toggleWindow(): string {
+            if (root.isRecording) {
+                root.stopRecording();
+                return "STOPPED";
+            } else {
+                root.startRecording("window");
+                return "STARTED";
+            }
+        }
+
+        function togglePortal(): string {
+            if (root.isRecording) {
+                root.stopRecording();
+                return "STOPPED";
+            } else {
+                root.startRecording("portal");
+                return "STARTED";
+            }
+        }
+
         function slurpSuccess(): string {
             Proc.runCommand("screenRecorder.readSlurpGeom", ["cat", "/tmp/dms_slurp_geom.txt"], (stdout, exitCode) => {
                 if (exitCode === 0 && stdout) {
