@@ -322,7 +322,30 @@ PluginSettings {
         }
     }
 
+    SettingsCard {
+        SectionTitle {
+            id: usageTitle
+            text: I18n.tr("Usage Guide")
+            icon: "menu_book"
+            collapsible: true
+            settingKey: "usageGuideExpanded"
+        }
+
+        UsageGuide {
+            expanded: usageTitle.isExpanded
+            items: [
+                I18n.tr("Left-click the widget when idle to open the recording control popout."),
+                I18n.tr("Right-click the widget when idle to quickly start custom region recording."),
+                I18n.tr("Middle-click the widget when idle to quickly start full screen recording."),
+                I18n.tr("Interactive region selection requires <b>slurp</b> to be installed on your system."),
+                I18n.tr("To hide the cursor in full screen mode, direct KMS capture may require: <br/><b>sudo setcap cap_sys_admin+ep /usr/bin/gpu-screen-recorder</b>"),
+                I18n.tr("Control recording programmatically or bind shortcuts using the IPC commands listed below.")
+            ]
+        }
+    }
+
     PluginAbout {
         repoUrl: "https://github.com/hthienloc/dms-screen-recorder"
     }
 }
+
