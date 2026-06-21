@@ -95,6 +95,15 @@ PluginSettings {
             description: I18n.tr("Blink the red recording status dot in the bar widget.")
             defaultValue: false
         }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "showFinishedNotification"
+            label: I18n.tr("Show Finished Notification")
+            description: I18n.tr("Show a notification when the recording is saved successfully or fails.")
+            defaultValue: true
+        }
     }
 
     PluginAbout {

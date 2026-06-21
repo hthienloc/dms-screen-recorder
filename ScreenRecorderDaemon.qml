@@ -27,6 +27,7 @@ PluginComponent {
         var fr = pluginData.framerate ?? "60";
         return parseInt(fr) || 60;
     }
+    readonly property bool showFinishedNotification: pluginData.showFinishedNotification ?? true
 
 
     property bool gpuScreenRecorderMissing: false
@@ -67,10 +68,6 @@ PluginComponent {
                     root.isRecording = true;
                     root.isPaused = false;
                     root.recordingSeconds = 0;
-                    
-                    if (typeof ToastService !== "undefined" && ToastService) {
-                        ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording started"));
-                    }
                 }
             });
         }
@@ -98,11 +95,11 @@ PluginComponent {
             root.isPaused = false;
             
             if (exitCode === 0) {
-                if (typeof ToastService !== "undefined" && ToastService) {
+                if (root.showFinishedNotification && typeof ToastService !== "undefined" && ToastService) {
                     ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording saved to: ") + root.outputPath);
                 }
             } else {
-                if (typeof ToastService !== "undefined" && ToastService) {
+                if (root.showFinishedNotification && typeof ToastService !== "undefined" && ToastService) {
                     ToastService.showError(I18n.tr("Screen Recorder"), I18n.tr("Recording failed with exit code: ") + exitCode);
                 }
             }
@@ -176,15 +173,7 @@ PluginComponent {
         root.recordingState = root.isPaused ? "paused" : "recording";
         
         var signal = root.isPaused ? "-STOP" : "-CONT";
-        Proc.runCommand("screenRecorder.signal", ["killall", signal, "gpu-screen-recorder"], (stdout, exitCode) => {
-            if (typeof ToastService !== "undefined" && ToastService) {
-                if (root.isPaused) {
-                    ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording paused"));
-                } else {
-                    ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording resumed"));
-                }
-            }
-        });
+        Proc.runCommand("screenRecorder.signal", ["killall", signal, "gpu-screen-recorder"]);
     }
 
     function stopRecording() {
@@ -208,10 +197,6 @@ PluginComponent {
         root.recordingState = "idle";
         root.isRecording = false;
         root.isPaused = false;
-
-        if (typeof ToastService !== "undefined" && ToastService) {
-            ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording canceled. File deleted."));
-        }
     }
 
     IpcHandler {
