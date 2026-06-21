@@ -201,6 +201,30 @@ PluginComponent {
             }
         }
 
+        if (activeMode === "region") {
+            Proc.runCommand("screenRecorder.slurp", ["slurp", "-f", "%wx%h+%x+%y"], (stdout, exitCode) => {
+                if (exitCode === 0 && stdout) {
+                    var geom = stdout.trim();
+                    if (geom) {
+                        root.regionGeometry = geom;
+                        root.proceedToRecord(activeMode, geom);
+                    } else {
+                        if (typeof ToastService !== "undefined" && ToastService) {
+                            ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Invalid region geometry selected."));
+                        }
+                    }
+                } else {
+                    if (typeof ToastService !== "undefined" && ToastService) {
+                        ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Region selection canceled."));
+                    }
+                }
+            });
+        } else {
+            root.proceedToRecord(activeMode, "");
+        }
+    }
+
+    function proceedToRecord(activeMode, geom) {
         // Resolve home directory
         var homeDir = Quickshell.env("HOME");
         var resolvedDir = root.outputDirectory.replace(/^~/, homeDir);
@@ -221,7 +245,7 @@ PluginComponent {
             if (activeMode === "window" || activeMode === "portal") {
                 source = "portal";
             } else if (activeMode === "region") {
-                source = root.regionGeometry;
+                source = geom || root.regionGeometry;
             } else {
                 source = (root.targetMonitor === "all" ? "screen" : root.targetMonitor);
             }
