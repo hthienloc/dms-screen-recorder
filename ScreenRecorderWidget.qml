@@ -76,7 +76,7 @@ PluginComponent {
                 spacing: daemon && daemon.isRecording ? (showRecordingDot ? Theme.spacingS : 0) : 0
 
                 DankIcon {
-                    visible: daemon ? (daemon.isRecording ? daemon.showRecordingDot : true) : true
+                    visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
                     size: Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
@@ -156,7 +156,7 @@ PluginComponent {
                 spacing: Theme.spacingXS
 
                 DankIcon {
-                    visible: daemon ? (daemon.isRecording ? daemon.showRecordingDot : true) : true
+                    visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
                     size: Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
