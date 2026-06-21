@@ -52,6 +52,11 @@ PluginComponent {
     property string recordingMode: pluginData.recordingMode ?? "screen"
     property string regionGeometry: pluginData.regionGeometry ?? "1028x768+100+100"
     property var monitorsList: [{"label": I18n.tr("First Monitor Found"), "value": "all", "width": 1920, "height": 1080}]
+    property bool recordMic: pluginData.recordMic ?? false
+    property string micDevice: pluginData.micDevice ?? "default_input"
+    property string systemAudioDevice: pluginData.systemAudioDevice ?? "default_output"
+    property var audioInputsList: [{"label": I18n.tr("Default Microphone"), "value": "default_input"}]
+    property var audioOutputsList: [{"label": I18n.tr("Default Output"), "value": "default_output"}]
 
     property string activeRecordingMode: ""
     property int regionX: 0
@@ -391,8 +396,16 @@ PluginComponent {
             }
             args.push("-f", root.framerate.toString(), "-o", root.outputPath);
             args.push("-cursor", root.showCursor ? "yes" : "no");
+            var hasAudio = false;
             if (root.recordAudio) {
-                args.push("-a", "default_output");
+                args.push("-a", root.systemAudioDevice || "default_output");
+                hasAudio = true;
+            }
+            if (root.recordMic) {
+                args.push("-a", root.micDevice || "default_input");
+                hasAudio = true;
+            }
+            if (hasAudio) {
                 args.push("-ac", root.audioCodec);
             }
             
@@ -663,6 +676,44 @@ PluginComponent {
         }
     }
 
+    function refreshAudioDevices() {
+        Proc.runCommand("screenRecorder.listAudioDevices", ["gpu-screen-recorder", "--list-audio-devices"], (stdout, exitCode) => {
+            var inputs = [{"label": I18n.tr("Default Microphone"), "value": "default_input"}];
+            var outputs = [{"label": I18n.tr("Default Output"), "value": "default_output"}];
+            
+            if (exitCode === 0 && stdout) {
+                var lines = stdout.trim().split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (!line) continue;
+                    var parts = line.split("|");
+                    if (parts.length >= 2) {
+                        var name = parts[0];
+                        var label = parts[1];
+                        
+                        if (name.includes(".monitor") || name.includes("output") || name === "default_output") {
+                            if (name !== "default_output") {
+                                outputs.push({
+                                    "label": label,
+                                    "value": name
+                                });
+                            }
+                        } else {
+                            if (name !== "default_input") {
+                                inputs.push({
+                                    "label": label,
+                                    "value": name
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            root.audioInputsList = inputs;
+            root.audioOutputsList = outputs;
+        });
+    }
+
     function refreshMonitors() {
         Proc.runCommand("screenRecorder.listMonitors", ["gpu-screen-recorder", "--list-monitors"], (stdout, exitCode) => {
             var defaultObj = {
@@ -709,6 +760,7 @@ PluginComponent {
     Component.onCompleted: {
         PluginService.setGlobalVar(pluginId, "instance", root);
         refreshMonitors();
+        refreshAudioDevices();
         // Parse initial region geometry
         var match = regionGeometry.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
         if (match) {

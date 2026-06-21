@@ -340,10 +340,21 @@ PluginComponent {
 
                     DankToggle {
                         width: parent.width
-                        text: I18n.tr("Record Audio")
+                        text: I18n.tr("Record System Audio")
                         checked: daemon ? daemon.recordAudio : false
                         onToggled: {
                             if (daemon) daemon.recordAudio = checked;
+                        }
+                    }
+
+                    SettingsDivider {}
+
+                    DankToggle {
+                        width: parent.width
+                        text: I18n.tr("Record Microphone")
+                        checked: daemon ? daemon.recordMic : false
+                        onToggled: {
+                            if (daemon) daemon.recordMic = checked;
                         }
                     }
 

@@ -130,8 +130,34 @@ PluginSettings {
 
         ToggleSettingPlus {
             settingKey: "recordAudio"
-            label: I18n.tr("Record Audio")
+            label: I18n.tr("Record System Audio")
             defaultValue: false
+        }
+
+        SelectionSettingPlus {
+            settingKey: "systemAudioDevice"
+            label: I18n.tr("System Audio Device")
+            options: rootSettings.daemon ? rootSettings.daemon.audioOutputsList : [{ label: I18n.tr("Default Output"), value: "default_output" }]
+            defaultValue: "default_output"
+            visible: rootSettings.daemon && rootSettings.daemon.recordAudio
+        }
+
+        SettingsDivider {
+            visible: rootSettings.daemon && (rootSettings.daemon.recordAudio || rootSettings.daemon.recordMic)
+        }
+
+        ToggleSettingPlus {
+            settingKey: "recordMic"
+            label: I18n.tr("Record Microphone")
+            defaultValue: false
+        }
+
+        SelectionSettingPlus {
+            settingKey: "micDevice"
+            label: I18n.tr("Microphone Device")
+            options: rootSettings.daemon ? rootSettings.daemon.audioInputsList : [{ label: I18n.tr("Default Microphone"), value: "default_input" }]
+            defaultValue: "default_input"
+            visible: rootSettings.daemon && rootSettings.daemon.recordMic
         }
 
         SettingsDivider {}
