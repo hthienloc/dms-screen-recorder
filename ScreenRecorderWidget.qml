@@ -355,35 +355,7 @@ PluginComponent {
                         }
                     }
 
-                    SettingsDivider {}
 
-                    // Display Region Geometry (Only visible if region mode selected)
-                    Item {
-                        width: parent.width
-                        height: 32
-                        visible: daemon ? (daemon.recordingMode === "region") : false
-
-                        StyledText {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: I18n.tr("Geometry")
-                            color: Theme.surfaceText
-                            font.pixelSize: Theme.fontSizeSmall
-                        }
-
-                        StyledText {
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: daemon ? daemon.regionGeometry : ""
-                            color: Theme.surfaceVariantText
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.family: "Monospace"
-                        }
-                    }
-
-                    SettingsDivider {
-                        visible: daemon ? (daemon.recordingMode === "region") : false
-                    }
 
                     // Monitor Selector (Only visible if multi-monitor detected)
                     Item {
