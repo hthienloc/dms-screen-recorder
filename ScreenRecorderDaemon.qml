@@ -253,7 +253,7 @@ PluginComponent {
         const thumbPath = "/tmp/dms_screen_recorder_thumb.png";
         Proc.runCommand("screenRecorderLH.extractThumb", ["ffmpeg", "-y", "-i", videoPath, "-ss", "00:00:00", "-frames:v", "1", thumbPath], (stdout, extractExitCode) => {
             const useThumb = (extractExitCode === 0);
-            root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + "file://" + videoPath, useThumb ? thumbPath : "");
+            root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + videoPath, useThumb ? thumbPath : "");
         });
 
         if (root.postRecordCommand && root.postRecordCommand.trim() !== "") {
