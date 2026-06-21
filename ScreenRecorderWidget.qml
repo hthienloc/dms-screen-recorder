@@ -19,6 +19,7 @@ PluginComponent {
     readonly property bool blinkRecordDot: pluginData.blinkRecordDot ?? false
     readonly property bool showRecordingDot: pluginData.showRecordingDot ?? false
     readonly property bool showPillBorder: pluginData.showPillBorder ?? false
+    readonly property bool minimalPopout: pluginData.minimalPopout ?? true
     readonly property int recordingIconSize: showPillBorder ? 12 : Theme.iconSizeSmall
 
     // Blinking Timer for recording dot
@@ -239,7 +240,17 @@ PluginComponent {
     }
 
     popoutWidth: 380
-    popoutHeight: daemon && daemon.monitorsList.length > 2 ? 540 : 500
+    popoutHeight: {
+        if (daemon && daemon.recordingState !== "idle") return 180;
+        if (minimalPopout) {
+            let h = 330;
+            if (daemon && daemon.recordingMode === "screen" && daemon.monitorsList.length > 2) {
+                h += 40;
+            }
+            return h;
+        }
+        return daemon && daemon.monitorsList.length > 2 ? 540 : 500;
+    }
 
     popoutContent: Component {
         PopoutComponent {
@@ -287,9 +298,12 @@ PluginComponent {
                         }
                     }
 
-                    SettingsDivider {}
+                    SettingsDivider {
+                        visible: !root.minimalPopout
+                    }
 
                     DankToggle {
+                        visible: !root.minimalPopout
                         width: parent.width
                         text: I18n.tr("Constant Frame Rate (CFR)")
                         checked: daemon ? daemon.forceCfr : false
@@ -298,9 +312,12 @@ PluginComponent {
                         }
                     }
 
-                    SettingsDivider {}
+                    SettingsDivider {
+                        visible: !root.minimalPopout
+                    }
 
                     DankToggle {
+                        visible: !root.minimalPopout
                         width: parent.width
                         text: I18n.tr("Low Power Mode")
                         checked: daemon ? daemon.lowPower : false
@@ -309,9 +326,12 @@ PluginComponent {
                         }
                     }
 
-                    SettingsDivider {}
+                    SettingsDivider {
+                        visible: !root.minimalPopout
+                    }
 
                     DankToggle {
+                        visible: !root.minimalPopout
                         width: parent.width
                         text: I18n.tr("GPU Overclock")
                         checked: daemon ? daemon.overclock : false
@@ -415,6 +435,7 @@ PluginComponent {
 
                     // Format Selector (Segmented buttons)
                     Item {
+                        visible: !root.minimalPopout
                         width: parent.width
                         height: 32
 
@@ -463,10 +484,13 @@ PluginComponent {
                         }
                     }
 
-                    SettingsDivider {}
+                    SettingsDivider {
+                        visible: !root.minimalPopout
+                    }
 
                     // Codec Selector (Segmented buttons)
                     Item {
+                        visible: !root.minimalPopout
                         width: parent.width
                         height: 32
 
@@ -587,10 +611,13 @@ PluginComponent {
                         }
                     }
 
-                    SettingsDivider {}
+                    SettingsDivider {
+                        visible: !root.minimalPopout
+                    }
 
                     // Size Estimation Section
                     Item {
+                        visible: !root.minimalPopout
                         width: parent.width
                         height: 20
 

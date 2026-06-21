@@ -239,6 +239,14 @@ PluginSettings {
             label: I18n.tr("Blink Recording Dot")
             defaultValue: false
         }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "minimalPopout"
+            label: I18n.tr("Minimal Popout Menu")
+            defaultValue: true
+        }
     }
 
     SettingsCard {
