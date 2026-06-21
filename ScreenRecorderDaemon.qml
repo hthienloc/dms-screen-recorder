@@ -276,15 +276,21 @@ PluginComponent {
             
             // Build arguments
             var source = "";
+            var reg = "";
             if (activeMode === "window" || activeMode === "portal") {
                 source = "portal";
             } else if (activeMode === "region") {
-                source = geom || root.regionGeometry;
+                source = "region";
+                reg = geom || root.regionGeometry;
             } else {
                 source = (root.targetMonitor === "all" ? "screen" : root.targetMonitor);
             }
             
-            var args = ["gpu-screen-recorder", "-w", source, "-f", root.framerate.toString(), "-o", root.outputPath];
+            var args = ["gpu-screen-recorder", "-w", source];
+            if (reg !== "") {
+                args.push("-region", reg);
+            }
+            args.push("-f", root.framerate.toString(), "-o", root.outputPath);
             args.push("-cursor", root.showCursor ? "yes" : "no");
             if (root.recordAudio) {
                 args.push("-a", "default_output");
