@@ -359,7 +359,7 @@ PluginComponent {
     IpcHandler {
         target: "screenRecorderLH"
 
-        function start(sourceType): string {
+        function start(sourceType: string): string {
             if (root.isRecording) return "ALREADY_RECORDING";
             root.startRecording(sourceType);
             return "STARTED";
@@ -389,7 +389,7 @@ PluginComponent {
             return "STARTED";
         }
 
-        function toggle(sourceType): string {
+        function toggle(sourceType: string): string {
             if (root.isRecording) {
                 root.stopRecording();
                 return "STOPPED";
