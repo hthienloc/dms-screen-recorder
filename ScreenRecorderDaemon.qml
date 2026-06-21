@@ -601,11 +601,12 @@ PluginComponent {
             }
 
             Rectangle {
-                // Determine screen-local overlap
-                x: root.regionX - modelData.x
-                y: root.regionY - modelData.y
-                width: root.regionW
-                height: root.regionH
+                readonly property int padding: 4
+                // Determine screen-local overlap, padded outward by 4px to avoid showing in recording
+                x: root.regionX - padding - modelData.x
+                y: root.regionY - padding - modelData.y
+                width: root.regionW + (padding * 2)
+                height: root.regionH + (padding * 2)
                 color: "transparent"
                 
                 // Only show if the geometry actually overlaps this screen
