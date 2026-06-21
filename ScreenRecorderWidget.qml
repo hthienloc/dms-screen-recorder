@@ -52,7 +52,7 @@ PluginComponent {
     // DankBar widget
     horizontalBarPill: Component {
         Item {
-            implicitWidth: daemon && daemon.isRecording ? (recordRow.implicitWidth + Theme.spacingM * 2) : (Theme.iconSizeSmall + Theme.spacingM * 2)
+            implicitWidth: daemon && daemon.isRecording ? (recordRow.implicitWidth + Theme.spacingM * 2) : Theme.iconSizeSmall
             implicitHeight: Theme.iconSize
             anchors.verticalCenter: parent.verticalCenter
 
@@ -71,10 +71,10 @@ PluginComponent {
             Row {
                 id: recordRow
                 anchors.centerIn: parent
-                spacing: Theme.spacingS
+                spacing: daemon && daemon.isRecording ? Theme.spacingS : 0
 
                 DankIcon {
-                    name: "fiber_manual_record"
+                    name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
                     size: Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
                     opacity: daemon && daemon.isRecording ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0
@@ -93,7 +93,7 @@ PluginComponent {
                 // Pause button
                 MouseArea {
                     visible: daemon ? daemon.isRecording : false
-                    width: Theme.iconSizeSmall
+                    width: daemon && daemon.isRecording ? Theme.iconSizeSmall : 0
                     height: Theme.iconSizeSmall
                     anchors.verticalCenter: parent.verticalCenter
                     cursorShape: Qt.PointingHandCursor
@@ -112,7 +112,7 @@ PluginComponent {
                 // Stop button
                 MouseArea {
                     visible: daemon ? daemon.isRecording : false
-                    width: Theme.iconSizeSmall
+                    width: daemon && daemon.isRecording ? Theme.iconSizeSmall : 0
                     height: Theme.iconSizeSmall
                     anchors.verticalCenter: parent.verticalCenter
                     cursorShape: Qt.PointingHandCursor

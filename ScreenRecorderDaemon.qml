@@ -135,7 +135,7 @@ PluginComponent {
     function stopRecording() {
         if (!root.isRecording) return;
 
-        Proc.runCommand("screenRecorder.stop", ["killall", "-SIGINT", "gpu-screen-recorder"]);
+        Proc.runCommand("screenRecorder.stop", ["sh", "-c", "killall -CONT gpu-screen-recorder; killall -INT gpu-screen-recorder"]);
     }
 
     IpcHandler {
