@@ -17,6 +17,8 @@ PluginComponent {
     readonly property var daemon: PluginService.getGlobalVar(pluginId, "instance")
     readonly property bool blinkRecordDot: pluginData.blinkRecordDot ?? false
     readonly property bool showRecordingDot: pluginData.showRecordingDot ?? true
+    readonly property bool showPillBorder: pluginData.showPillBorder ?? false
+    readonly property int recordingIconSize: showPillBorder ? Theme.iconSizeSmall : Theme.iconSize
 
     // Blinking Timer for recording dot
     Timer {
@@ -54,7 +56,7 @@ PluginComponent {
     // DankBar widget
     horizontalBarPill: Component {
         Item {
-            implicitWidth: daemon && daemon.isRecording ? (recordRow.implicitWidth + Theme.spacingM * 2) : Theme.iconSizeSmall
+            implicitWidth: daemon && daemon.isRecording ? (recordRow.implicitWidth + (showPillBorder ? Theme.spacingM * 2 : 0)) : Theme.iconSize
             implicitHeight: Theme.iconSize
             anchors.verticalCenter: parent.verticalCenter
 
@@ -65,20 +67,20 @@ PluginComponent {
             StyledRect {
                 anchors.fill: parent
                 radius: Theme.cornerRadius
-                color: daemon && daemon.isRecording ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.1) : "transparent"
-                border.color: daemon && daemon.isRecording ? Theme.error : "transparent"
-                border.width: daemon && daemon.isRecording ? 1 : 0
+                color: daemon && daemon.isRecording && showPillBorder ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.1) : "transparent"
+                border.color: daemon && daemon.isRecording && showPillBorder ? Theme.error : "transparent"
+                border.width: daemon && daemon.isRecording && showPillBorder ? 1 : 0
             }
 
             Row {
                 id: recordRow
                 anchors.centerIn: parent
-                spacing: daemon && daemon.isRecording ? (showRecordingDot ? Theme.spacingS : 0) : 0
+                spacing: daemon && daemon.isRecording ? Theme.spacingM : 0
 
                 DankIcon {
                     visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
-                    size: Theme.iconSizeSmall
+                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSize
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
                     opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
                     anchors.verticalCenter: parent.verticalCenter
@@ -158,7 +160,7 @@ PluginComponent {
                 DankIcon {
                     visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
-                    size: Theme.iconSizeSmall
+                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSize
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
                     opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -188,7 +190,7 @@ PluginComponent {
         }
     }
 
-    popoutWidth: 360
+    popoutWidth: 380
     popoutHeight: 180
 
     popoutContent: Component {
@@ -241,6 +243,18 @@ PluginComponent {
                         }
                     }
 
+                    DankButton {
+                        visible: daemon ? (daemon.recordingState === "idle" && daemon.outputPath !== "") : false
+                        text: I18n.tr("Preview")
+                        iconName: "play_circle"
+                        backgroundColor: Theme.surfaceContainerHigh
+                        textColor: Theme.primary
+                        buttonHeight: 40
+                        onClicked: {
+                            Quickshell.execDetached(["xdg-open", daemon.outputPath]);
+                        }
+                    }
+
                     // --- RECORDING STATE BUTTONS ---
                     DankButton {
                         visible: daemon ? (daemon.recordingState === "recording" || daemon.recordingState === "paused") : false
@@ -264,6 +278,18 @@ PluginComponent {
                         onClicked: {
                             if (daemon) daemon.stopRecording();
                             popoutComp.closePopout();
+                        }
+                    }
+
+                    DankButton {
+                        visible: daemon ? (daemon.recordingState === "paused" && daemon.outputPath !== "") : false
+                        text: I18n.tr("Preview")
+                        iconName: "play_circle"
+                        backgroundColor: Theme.surfaceContainerHigh
+                        textColor: Theme.primary
+                        buttonHeight: 40
+                        onClicked: {
+                            Quickshell.execDetached(["xdg-open", daemon.outputPath]);
                         }
                     }
 

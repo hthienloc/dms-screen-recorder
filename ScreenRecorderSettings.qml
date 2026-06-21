@@ -72,6 +72,15 @@ PluginSettings {
         SettingsDivider {}
 
         ToggleSettingPlus {
+            settingKey: "showPillBorder"
+            label: I18n.tr("Show Pill Border")
+            description: I18n.tr("Show border and background for the recording pill in the bar.")
+            defaultValue: false
+        }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
             settingKey: "showRecordingDot"
             label: I18n.tr("Show Recording Dot")
             description: I18n.tr("Show the red recording status dot in the bar widget.")
