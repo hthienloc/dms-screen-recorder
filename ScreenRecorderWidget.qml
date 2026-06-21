@@ -648,8 +648,9 @@ PluginComponent {
                         buttonHeight: 40
                         anchors.horizontalCenter: parent.horizontalCenter
                         onClicked: {
-                            popoutComp.closePopout();
+                            console.log("[ScreenRecorderWidget] Start Recording clicked, calling daemon.startRecording...");
                             if (daemon) daemon.startRecording();
+                            popoutComp.closePopout();
                         }
                     }
 
