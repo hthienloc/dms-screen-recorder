@@ -1,0 +1,27 @@
+{
+  "id": "screenRecorder",
+  "name": "Screen Recorder",
+  "description": "Wayland screen recorder using gpu-screen-recorder.",
+  "version": "1.0.0",
+  "author": "Loc Huynh",
+  "icon": "videocam",
+  "type": [
+    "daemon",
+    "widget"
+  ],
+  "capabilities": [
+    "control-center",
+    "ipc"
+  ],
+  "components": {
+    "daemon": "./ScreenRecorderWidget.qml",
+    "widget": "./ScreenRecorderWidget.qml"
+  },
+  "component": "./ScreenRecorderWidget.qml",
+  "settings": "./ScreenRecorderSettings.qml",
+  "permissions": [
+    "settings_read",
+    "settings_write",
+    "shell_execute"
+  ]
+}
