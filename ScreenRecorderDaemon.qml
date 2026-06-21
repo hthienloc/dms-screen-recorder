@@ -101,7 +101,7 @@ PluginComponent {
                (hh < 10 ? "0" : "") + hh + (min < 10 ? "0" : "") + min + (ss < 10 ? "0" : "") + ss;
     }
 
-    function startRecording() {
+    function startRecording(sourceType) {
         if (root.isRecording) return;
 
         if (root.gpuScreenRecorderMissing) {
@@ -127,7 +127,8 @@ PluginComponent {
             root.outputPath = resolvedDir + "/recording_" + getTimestampString() + "." + root.videoFormat;
             
             // Build arguments
-            var args = ["gpu-screen-recorder", "-w", "screen", "-f", root.framerate.toString(), "-o", root.outputPath];
+            var source = (sourceType === "portal") ? "portal" : "screen";
+            var args = ["gpu-screen-recorder", "-w", source, "-f", root.framerate.toString(), "-o", root.outputPath];
             if (root.recordAudio) {
                 args.push("-a", "default_output");
             }
@@ -171,12 +172,30 @@ PluginComponent {
         safetyTimer.restart();
     }
 
+    function cancelRecording() {
+        if (!root.isRecording) return;
+
+        recorderProcess.running = false;
+        safetyTimer.stop();
+
+        if (root.outputPath) {
+            Proc.runCommand("screenRecorder.cancel", ["rm", "-f", root.outputPath]);
+        }
+
+        root.isRecording = false;
+        root.isPaused = false;
+
+        if (typeof ToastService !== "undefined" && ToastService) {
+            ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording canceled. File deleted."));
+        }
+    }
+
     IpcHandler {
         target: "screenRecorder"
 
-        function start(): string {
+        function start(sourceType): string {
             if (root.isRecording) return "ALREADY_RECORDING";
-            root.startRecording();
+            root.startRecording(sourceType);
             return "STARTED";
         }
 
@@ -184,6 +203,12 @@ PluginComponent {
             if (!root.isRecording) return "NOT_RECORDING";
             root.stopRecording();
             return "STOPPED";
+        }
+
+        function cancel(): string {
+            if (!root.isRecording) return "NOT_RECORDING";
+            root.cancelRecording();
+            return "CANCELED";
         }
 
         function pause(): string {

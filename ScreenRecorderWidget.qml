@@ -185,7 +185,7 @@ PluginComponent {
         }
     }
 
-    popoutWidth: 320
+    popoutWidth: 360
     popoutHeight: 180
 
     popoutContent: Component {
@@ -211,19 +211,34 @@ PluginComponent {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: Theme.spacingM
 
+                    // --- IDLE STATE BUTTONS ---
                     DankButton {
                         visible: daemon ? !daemon.isRecording : true
-                        text: I18n.tr("Start Recording")
-                        iconName: "fiber_manual_record"
+                        text: I18n.tr("Screen")
+                        iconName: "fullscreen"
                         backgroundColor: Theme.primary
                         textColor: Theme.onPrimary
                         buttonHeight: 40
                         onClicked: {
-                            if (daemon) daemon.startRecording();
+                            if (daemon) daemon.startRecording("screen");
                             popoutComp.closePopout();
                         }
                     }
 
+                    DankButton {
+                        visible: daemon ? !daemon.isRecording : true
+                        text: I18n.tr("Region/Window")
+                        iconName: "aspect_ratio"
+                        backgroundColor: Theme.surfaceContainerHigh
+                        textColor: Theme.surfaceText
+                        buttonHeight: 40
+                        onClicked: {
+                            if (daemon) daemon.startRecording("portal");
+                            popoutComp.closePopout();
+                        }
+                    }
+
+                    // --- RECORDING STATE BUTTONS ---
                     DankButton {
                         visible: daemon ? daemon.isRecording : false
                         text: daemon && daemon.isPaused ? I18n.tr("Resume") : I18n.tr("Pause")
@@ -245,6 +260,19 @@ PluginComponent {
                         buttonHeight: 40
                         onClicked: {
                             if (daemon) daemon.stopRecording();
+                            popoutComp.closePopout();
+                        }
+                    }
+
+                    DankButton {
+                        visible: daemon ? daemon.isRecording : false
+                        text: I18n.tr("Cancel")
+                        iconName: "delete"
+                        backgroundColor: Theme.surfaceContainerHigh
+                        textColor: Theme.error
+                        buttonHeight: 40
+                        onClicked: {
+                            if (daemon) daemon.cancelRecording();
                             popoutComp.closePopout();
                         }
                     }
