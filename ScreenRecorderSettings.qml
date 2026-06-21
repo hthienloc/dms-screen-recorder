@@ -31,7 +31,7 @@ PluginSettings {
 
         SettingsDivider {}
 
-        SelectionSettingPlus {
+        ButtonGroupSettingPlus {
             settingKey: "videoFormat"
             label: I18n.tr("Video Format")
             options: [
@@ -44,7 +44,7 @@ PluginSettings {
 
         SettingsDivider {}
 
-        SelectionSettingPlus {
+        ButtonGroupSettingPlus {
             settingKey: "videoCodec"
             label: I18n.tr("Video Codec")
             options: [
@@ -63,7 +63,7 @@ PluginSettings {
             icon: "videocam"
         }
 
-        SelectionSettingPlus {
+        ButtonGroupSettingPlus {
             settingKey: "recordingMode"
             label: I18n.tr("Recording Source")
             options: [
@@ -109,7 +109,7 @@ PluginSettings {
 
         SettingsDivider {}
 
-        SelectionSettingPlus {
+        ButtonGroupSettingPlus {
             settingKey: "audioCodec"
             label: I18n.tr("Audio Codec")
             options: [
@@ -141,7 +141,7 @@ PluginSettings {
 
         SettingsDivider {}
 
-        SelectionSettingPlus {
+        ButtonGroupSettingPlus {
             settingKey: "videoQuality"
             label: I18n.tr("Video Quality")
             options: [
@@ -187,7 +187,7 @@ PluginSettings {
 
         SettingsDivider {}
 
-        SelectionSettingPlus {
+        ButtonGroupSettingPlus {
             settingKey: "encoderTune"
             label: I18n.tr("Encoder Tuning")
             description: I18n.tr("Prioritize either recording performance or image quality.")
@@ -200,7 +200,7 @@ PluginSettings {
 
         SettingsDivider {}
 
-        SelectionSettingPlus {
+        ButtonGroupSettingPlus {
             settingKey: "colorRange"
             label: I18n.tr("Color Range")
             description: I18n.tr("Select recording color range (Full is recommended for PC playback).")
