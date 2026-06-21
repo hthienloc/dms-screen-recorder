@@ -34,6 +34,7 @@ PluginComponent {
     property string encoderTune: pluginData.encoderTune ?? "performance"
     property string colorRange: pluginData.colorRange ?? "full"
     property string audioCodec: pluginData.audioCodec ?? "opus"
+    property string postRecordCommand: pluginData.postRecordCommand ?? ""
     property int framerate: {
         var fr = pluginData.framerate ?? 60;
         return parseInt(fr) || 60;
@@ -144,6 +145,13 @@ PluginComponent {
                     const useThumb = (extractExitCode === 0);
                     root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + root.outputPath, useThumb ? thumbPath : "");
                 });
+
+                if (root.postRecordCommand && root.postRecordCommand.trim() !== "") {
+                    const safePath = "'" + videoPath.replace(/'/g, "'\\''") + "'";
+                    const cmdStr = root.postRecordCommand.replace(/\$1/g, safePath);
+                    console.log("[ScreenRecorderDaemon] Executing post-record command: " + cmdStr);
+                    Proc.runCommand("screenRecorderLH.postRecordCommand", ["sh", "-c", cmdStr]);
+                }
             } else {
                 root.sendFinishedNotification(true, I18n.tr("Recording failed with exit code: ") + exitCode);
             }

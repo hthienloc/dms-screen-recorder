@@ -210,6 +210,16 @@ PluginSettings {
             ]
             defaultValue: "full"
         }
+
+        SettingsDivider {}
+
+        StringSettingPlus {
+            settingKey: "postRecordCommand"
+            label: I18n.tr("Post-Recording Command")
+            description: I18n.tr("Command to run after recording finishes. Use $1 to reference the file path.")
+            defaultValue: ""
+            placeholder: "e.g. handbrake-cli -i $1 ..."
+        }
     }
 
     SettingsCard {
