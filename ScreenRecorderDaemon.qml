@@ -35,6 +35,12 @@ PluginComponent {
     property string colorRange: pluginData.colorRange ?? "full"
     property string audioCodec: pluginData.audioCodec ?? "opus"
     property string postRecordCommand: pluginData.postRecordCommand ?? ""
+    property string compressVideo: pluginData.compressVideo ?? "disabled"
+    property string targetResolution: pluginData.targetResolution ?? "original"
+    property int maxTargetSize: {
+        var size = pluginData.maxTargetSize ?? 0;
+        return parseInt(size) || 0;
+    }
     property int framerate: {
         var fr = pluginData.framerate ?? 60;
         return parseInt(fr) || 60;
@@ -140,18 +146,7 @@ PluginComponent {
 
             if (exitCode === 0) {
                 const videoPath = root.outputPath.replace(/^file:\/\//, "");
-                const thumbPath = "/tmp/dms_screen_recorder_thumb.png";
-                Proc.runCommand("screenRecorderLH.extractThumb", ["ffmpeg", "-y", "-i", videoPath, "-ss", "00:00:00", "-frames:v", "1", thumbPath], (stdout, extractExitCode) => {
-                    const useThumb = (extractExitCode === 0);
-                    root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + root.outputPath, useThumb ? thumbPath : "");
-                });
-
-                if (root.postRecordCommand && root.postRecordCommand.trim() !== "") {
-                    const safePath = "'" + videoPath.replace(/'/g, "'\\''") + "'";
-                    const cmdStr = root.postRecordCommand.replace(/\$1/g, safePath);
-                    console.log("[ScreenRecorderDaemon] Executing post-record command: " + cmdStr);
-                    Proc.runCommand("screenRecorderLH.postRecordCommand", ["sh", "-c", cmdStr]);
-                }
+                root.performPostProcessing(videoPath);
             } else {
                 root.sendFinishedNotification(true, I18n.tr("Recording failed with exit code: ") + exitCode);
             }
@@ -189,6 +184,83 @@ PluginComponent {
                 args.push("-u", "critical");
             }
             Proc.runCommand("screen-recorder-notify", args);
+        }
+    }
+
+    function performPostProcessing(videoPath) {
+        var needsCompression = (root.compressVideo !== "disabled");
+        var needsScaling = (root.targetResolution !== "original");
+        
+        if (!needsCompression && !needsScaling) {
+            root.finalizeRecording(videoPath);
+            return;
+        }
+
+        var ffmpegArgs = ["ffmpeg", "-y", "-i", videoPath];
+
+        if (needsScaling) {
+            if (root.targetResolution === "1080p") {
+                ffmpegArgs.push("-vf", "scale=-2:1080");
+            } else if (root.targetResolution === "720p") {
+                ffmpegArgs.push("-vf", "scale=-2:720");
+            } else if (root.targetResolution === "480p") {
+                ffmpegArgs.push("-vf", "scale=-2:480");
+            }
+        }
+
+        var codec = "libx264";
+        var crf = "23";
+        if (root.compressVideo === "hevc") {
+            codec = "libx265";
+            crf = "26";
+        } else if (root.compressVideo === "av1") {
+            codec = "libsvtav1";
+            crf = "30";
+        }
+        ffmpegArgs.push("-c:v", codec);
+
+        if (root.maxTargetSize > 0) {
+            var duration = Math.max(1, root.recordingSeconds);
+            var targetBitrateKbps = Math.round((root.maxTargetSize * 8192) / duration);
+            var videoBitrate = Math.max(100, targetBitrateKbps - 128);
+            ffmpegArgs.push("-b:v", videoBitrate + "k", "-maxrate", Math.round(videoBitrate * 1.5) + "k", "-bufsize", (videoBitrate * 2) + "k");
+        } else {
+            ffmpegArgs.push("-crf", crf);
+        }
+
+        ffmpegArgs.push("-c:a", "copy");
+
+        var ext = root.videoFormat;
+        var tempOut = videoPath + ".tmp." + ext;
+        ffmpegArgs.push(tempOut);
+
+        console.log("[ScreenRecorderDaemon] Spawning FFmpeg compression process: " + ffmpegArgs.join(" "));
+
+        Proc.runCommand("screenRecorderLH.compress", ffmpegArgs, (stdout, exitCode) => {
+            if (exitCode === 0) {
+                Proc.runCommand("screenRecorderLH.replaceOriginal", ["mv", "-f", tempOut, videoPath], (mvStdout, mvExitCode) => {
+                    root.finalizeRecording(videoPath);
+                });
+            } else {
+                console.log("[ScreenRecorderDaemon] FFmpeg compression failed with code: " + exitCode);
+                Proc.runCommand("screenRecorderLH.cleanupTemp", ["rm", "-f", tempOut]);
+                root.finalizeRecording(videoPath);
+            }
+        });
+    }
+
+    function finalizeRecording(videoPath) {
+        const thumbPath = "/tmp/dms_screen_recorder_thumb.png";
+        Proc.runCommand("screenRecorderLH.extractThumb", ["ffmpeg", "-y", "-i", videoPath, "-ss", "00:00:00", "-frames:v", "1", thumbPath], (stdout, extractExitCode) => {
+            const useThumb = (extractExitCode === 0);
+            root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + "file://" + videoPath, useThumb ? thumbPath : "");
+        });
+
+        if (root.postRecordCommand && root.postRecordCommand.trim() !== "") {
+            const safePath = "'" + videoPath.replace(/'/g, "'\\''") + "'";
+            const cmdStr = root.postRecordCommand.replace(/\$1/g, safePath);
+            console.log("[ScreenRecorderDaemon] Executing post-record command: " + cmdStr);
+            Proc.runCommand("screenRecorderLH.postRecordCommand", ["sh", "-c", cmdStr]);
         }
     }
 

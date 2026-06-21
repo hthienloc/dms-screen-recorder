@@ -210,8 +210,13 @@ PluginSettings {
             ]
             defaultValue: "full"
         }
+    }
 
-        SettingsDivider {}
+    SettingsCard {
+        SectionTitle {
+            text: I18n.tr("Post-Recording Actions")
+            icon: "video_settings"
+        }
 
         StringSettingPlus {
             settingKey: "postRecordCommand"
@@ -219,6 +224,46 @@ PluginSettings {
             description: I18n.tr("Command to run after recording finishes. Use $1 to reference the file path.")
             defaultValue: ""
             placeholder: "e.g. handbrake-cli -i $1 ..."
+        }
+
+        SettingsDivider {}
+
+        ButtonGroupSettingPlus {
+            settingKey: "compressVideo"
+            label: I18n.tr("Post-Compression Format")
+            description: I18n.tr("Automatically compress video after recording to reduce file size.")
+            defaultValue: "disabled"
+            options: [
+                { label: I18n.tr("Disabled"), value: "disabled" },
+                { label: "H.264", value: "h264" },
+                { label: "HEVC", value: "hevc" },
+                { label: "AV1", value: "av1" }
+            ]
+        }
+
+        SettingsDivider {}
+
+        ButtonGroupSettingPlus {
+            settingKey: "targetResolution"
+            label: I18n.tr("Target Resolution")
+            description: I18n.tr("Downscale video resolution to reduce size (maintains aspect ratio).")
+            defaultValue: "original"
+            options: [
+                { label: I18n.tr("Original"), value: "original" },
+                { label: "1080p", value: "1080p" },
+                { label: "720p", value: "720p" },
+                { label: "480p", value: "480p" }
+            ]
+        }
+
+        SettingsDivider {}
+
+        StringSettingPlus {
+            settingKey: "maxTargetSize"
+            label: I18n.tr("Target Size Limit (MB)")
+            description: I18n.tr("Automatically target a specific file size (0 for unlimited).")
+            defaultValue: "0"
+            placeholder: "e.g. 50"
         }
     }
 
