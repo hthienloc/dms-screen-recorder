@@ -8,12 +8,12 @@ Wayland screen recorder plugin for DankMaterialShell (DMS), powered by `gpu-scre
 
 Use the DMS CLI:
 ```bash
-dms plugins install screenRecorder
+dms plugins install screenRecorderLH
 ```
 
 Or manually:
 ```bash
-git clone https://github.com/hthienloc/dms-screen-recorder ~/.config/DankMaterialShell/plugins/screenRecorder
+git clone https://github.com/hthienloc/dms-screen-recorder ~/.config/DankMaterialShell/plugins/screenRecorderLH
 ```
 
 ## Features
