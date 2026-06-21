@@ -184,7 +184,23 @@ PluginComponent {
                (hh < 10 ? "0" : "") + hh + (min < 10 ? "0" : "") + min + (ss < 10 ? "0" : "") + ss;
     }
 
+    Timer {
+        id: recordingDelayTimer
+        interval: 150
+        repeat: false
+        property string sourceType: ""
+        onTriggered: {
+            root.startRecordingDirect(sourceType);
+        }
+    }
+
     function startRecording(sourceType) {
+        if (root.recordingState !== "idle") return;
+        recordingDelayTimer.sourceType = sourceType || "";
+        recordingDelayTimer.start();
+    }
+
+    function startRecordingDirect(sourceType) {
         if (root.recordingState !== "idle") return;
 
         if (root.gpuScreenRecorderMissing) {
@@ -195,6 +211,7 @@ PluginComponent {
         }
 
         var activeMode = sourceType || root.recordingMode;
+        console.log("[ScreenRecorderDaemon] startRecording called, activeMode: " + activeMode);
         if (!root.showCursor && (activeMode === "window" || activeMode === "portal")) {
             if (typeof ToastService !== "undefined" && ToastService) {
                 ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Hiding cursor may not work in Region/Window mode on Wayland due to compositor limitations."));
@@ -202,7 +219,9 @@ PluginComponent {
         }
 
         if (activeMode === "region") {
+            console.log("[ScreenRecorderDaemon] triggering slurp...");
             Proc.runCommand("screenRecorder.slurp", ["slurp", "-f", "%wx%h+%x+%y"], (stdout, exitCode) => {
+                console.log("[ScreenRecorderDaemon] slurp finished with exitCode: " + exitCode + ", stdout: " + stdout);
                 if (exitCode === 0 && stdout) {
                     var geom = stdout.trim();
                     if (geom) {
