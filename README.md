@@ -69,7 +69,7 @@ dms ipc screenRecorderLH status
 
 ## Roadmap
 
-- [ ] **Window/Portal Capture (`-w portal`)** - Enable and stabilize window/portal capture utilizing XDG Desktop Portal (currently fails on some compositors).
+- [ ] **Window & Portal Recording Modes** - Fully implement and stabilize Window and Portal selection modes using the XDG Desktop Portal interface (`-w portal`), resolving DBus integration and compositor backend compatibility under Niri.
 - [ ] **Instant Replay Buffer (`-r <sec>`)** - Support saving the last N seconds of screen activity in RAM or disk.
 - [ ] **Webcam Overlay (`-w "screen|/dev/video0"`)** - Support embedding a webcam overlay on the recording with custom positioning.
 - [ ] **Application Audio Capture (`-a <app_name>`)** - Support recording audio from a specific application instead of the entire system.
