@@ -24,7 +24,6 @@ PluginSettings {
         StringSettingPlus {
             settingKey: "outputDirectory"
             label: I18n.tr("Output Directory")
-            description: I18n.tr("Where recorded videos will be saved.")
             defaultValue: "~/Videos/Recordings"
             placeholder: "~/Videos/Recordings"
             isDirectory: true
@@ -35,7 +34,6 @@ PluginSettings {
         SelectionSettingPlus {
             settingKey: "videoFormat"
             label: I18n.tr("Video Format")
-            description: I18n.tr("Container format for the video file.")
             options: [
                 { label: "MP4 (.mp4)", value: "mp4" },
                 { label: "Matroska (.mkv)", value: "mkv" },
@@ -49,7 +47,6 @@ PluginSettings {
         SelectionSettingPlus {
             settingKey: "videoCodec"
             label: I18n.tr("Video Codec")
-            description: I18n.tr("Hardware video codec to use.")
             options: [
                 { label: I18n.tr("Auto Detect"), value: "auto" },
                 { label: "H.264", value: "h264" },
@@ -69,7 +66,6 @@ PluginSettings {
         SelectionSettingPlus {
             settingKey: "recordingMode"
             label: I18n.tr("Recording Source")
-            description: I18n.tr("Select the source area to record (Full Screen, Custom Region, or specific Window).")
             options: [
                 { label: I18n.tr("Full Screen"), value: "screen" },
                 { label: I18n.tr("Custom Region"), value: "region" }
@@ -98,7 +94,6 @@ PluginSettings {
         SelectionSettingPlus {
             settingKey: "targetMonitor"
             label: I18n.tr("Target Monitor")
-            description: I18n.tr("Select which monitor to record by default.")
             options: rootSettings.daemon ? rootSettings.daemon.monitorsList : [{ label: I18n.tr("First Monitor Found"), value: "all" }]
             defaultValue: "all"
             visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "screen"
@@ -109,7 +104,6 @@ PluginSettings {
         ToggleSettingPlus {
             settingKey: "recordAudio"
             label: I18n.tr("Record Audio")
-            description: I18n.tr("Record system audio playback along with the screen.")
             defaultValue: false
         }
 
@@ -118,7 +112,6 @@ PluginSettings {
         SelectionSettingPlus {
             settingKey: "audioCodec"
             label: I18n.tr("Audio Codec")
-            description: I18n.tr("Select the audio compression format.")
             options: [
                 { label: "Opus", value: "opus" },
                 { label: "AAC", value: "aac" },
@@ -132,7 +125,6 @@ PluginSettings {
         ToggleSettingPlus {
             settingKey: "showCursor"
             label: I18n.tr("Show Cursor")
-            description: I18n.tr("Show mouse cursor in the recorded video.")
             defaultValue: true
         }
 
@@ -141,7 +133,6 @@ PluginSettings {
         SliderSettingPlus {
             settingKey: "framerate"
             label: I18n.tr("Framerate")
-            description: I18n.tr("Number of frames per second to record.")
             defaultValue: 60
             minimum: 15
             maximum: 144
@@ -153,7 +144,6 @@ PluginSettings {
         SelectionSettingPlus {
             settingKey: "videoQuality"
             label: I18n.tr("Video Quality")
-            description: I18n.tr("Select the video recording quality.")
             options: [
                 { label: I18n.tr("Medium"), value: "medium" },
                 { label: I18n.tr("High"), value: "high" },
@@ -231,7 +221,6 @@ PluginSettings {
         ToggleSettingPlus {
             settingKey: "showPillBorder"
             label: I18n.tr("Show Pill Border")
-            description: I18n.tr("Show border and background for the recording pill in the bar.")
             defaultValue: false
         }
 
@@ -240,7 +229,6 @@ PluginSettings {
         ToggleSettingPlus {
             settingKey: "showRecordingDot"
             label: I18n.tr("Show Recording Dot")
-            description: I18n.tr("Show the red recording status dot in the bar widget.")
             defaultValue: true
         }
 
@@ -249,7 +237,6 @@ PluginSettings {
         ToggleSettingPlus {
             settingKey: "blinkRecordDot"
             label: I18n.tr("Blink Recording Dot")
-            description: I18n.tr("Blink the red recording status dot in the bar widget.")
             defaultValue: false
         }
     }
@@ -263,7 +250,6 @@ PluginSettings {
         ButtonGroupSettingPlus {
             settingKey: "postNotification"
             label: I18n.tr("Post-Recording Notification")
-            description: I18n.tr("Select which types of notifications to show after a recording is saved.")
             defaultValue: "notification"
             options: [
                 { label: I18n.tr("Notification"), value: "notification" },
