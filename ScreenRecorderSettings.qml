@@ -282,29 +282,59 @@ PluginSettings {
 
         Column {
             width: parent.width
-            spacing: Theme.spacingS
+            spacing: Theme.spacingM
 
             StyledText {
                 width: parent.width
                 wrapMode: Text.WordWrap
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.surfaceVariantText
-                text: I18n.tr("You can control screen recording directly from your terminal using the following DMS IPC commands:")
+                text: I18n.tr("Bind screen recorder controls directly inside your Window Manager configuration (Niri, Hyprland, etc.) or custom scripts using the following DMS IPC commands:")
             }
 
-            StyledText {
+            Column {
                 width: parent.width
-                wrapMode: Text.WordWrap
-                font.pixelSize: Theme.fontSizeSmall
-                font.family: "monospace"
-                color: Theme.primary
-                text: "• " + I18n.tr("Start Screen recording:") + " dms ipc screenRecorderLH startScreen\n" +
-                      "• " + I18n.tr("Start Region selection:") + " dms ipc screenRecorderLH startRegion\n" +
-                      "• " + I18n.tr("Start Window portal:") + " dms ipc screenRecorderLH startWindow\n" +
-                      "• " + I18n.tr("Start Portal selection:") + " dms ipc screenRecorderLH startPortal\n" +
-                      "• " + I18n.tr("Stop recording:") + " dms ipc screenRecorderLH stop\n" +
-                      "• " + I18n.tr("Cancel recording:") + " dms ipc screenRecorderLH cancel\n" +
-                      "• " + I18n.tr("Pause/Resume recording:") + " dms ipc screenRecorderLH pause"
+                spacing: Theme.spacingS
+
+                CopyBox {
+                    label: I18n.tr("Start Full Screen Recording")
+                    text: "dms ipc screenRecorderLH startScreen"
+                }
+
+                CopyBox {
+                    label: I18n.tr("Start Custom Region Selection")
+                    text: "dms ipc screenRecorderLH startRegion"
+                }
+
+                CopyBox {
+                    label: I18n.tr("Start Active Window Selection (Portal)")
+                    text: "dms ipc screenRecorderLH startWindow"
+                }
+
+                CopyBox {
+                    label: I18n.tr("Start Portal Selection")
+                    text: "dms ipc screenRecorderLH startPortal"
+                }
+
+                CopyBox {
+                    label: I18n.tr("Stop Recording")
+                    text: "dms ipc screenRecorderLH stop"
+                }
+
+                CopyBox {
+                    label: I18n.tr("Cancel Recording (Delete File)")
+                    text: "dms ipc screenRecorderLH cancel"
+                }
+
+                CopyBox {
+                    label: I18n.tr("Pause / Resume Recording")
+                    text: "dms ipc screenRecorderLH pause"
+                }
+
+                CopyBox {
+                    label: I18n.tr("Get Recording Status (JSON)")
+                    text: "dms ipc screenRecorderLH status"
+                }
             }
         }
     }
