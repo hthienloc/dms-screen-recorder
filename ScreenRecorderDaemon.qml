@@ -618,10 +618,28 @@ PluginComponent {
                     onPaint: {
                         var ctx = getContext("2d");
                         ctx.clearRect(0, 0, width, height);
-                        ctx.strokeStyle = Theme.primary; // Custom color for visualizer
-                        ctx.lineWidth = 3;
-                        ctx.setLineDash([8, 6]);
-                        ctx.strokeRect(1.5, 1.5, width - 3, height - 3);
+                        ctx.strokeStyle = Theme.primary;
+                        ctx.lineWidth = 2.5;
+                        ctx.setLineDash([6, 5]);
+                        
+                        var x = 1.25;
+                        var y = 1.25;
+                        var w = width - 2.5;
+                        var h = height - 2.5;
+                        var r = 8; // Corner radius
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x + r, y);
+                        ctx.lineTo(x + w - r, y);
+                        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                        ctx.lineTo(x + w, y + h - r);
+                        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                        ctx.lineTo(x + r, y + h);
+                        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                        ctx.lineTo(x, y + r);
+                        ctx.quadraticCurveTo(x, y, x + r, y);
+                        ctx.closePath();
+                        ctx.stroke();
                     }
                     
                     onWidthChanged: requestPaint()
@@ -630,8 +648,8 @@ PluginComponent {
 
                 SequentialAnimation on opacity {
                     loops: Animation.Infinite
-                    NumberAnimation { from: 1.0; to: 0.3; duration: 800; easing.type: Easing.InOutQuad }
-                    NumberAnimation { from: 0.3; to: 1.0; duration: 800; easing.type: Easing.InOutQuad }
+                    NumberAnimation { from: 0.6; to: 0.15; duration: 1500; easing.type: Easing.InOutQuad }
+                    NumberAnimation { from: 0.15; to: 0.6; duration: 1500; easing.type: Easing.InOutQuad }
                 }
             }
         }
