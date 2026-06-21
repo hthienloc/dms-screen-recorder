@@ -25,6 +25,7 @@ git clone https://github.com/hthienloc/dms-screen-recorder ~/.config/DankMateria
 ## Requirements
 
 - `gpu-screen-recorder`
+- `slurp` (for interactive region selection on Wayland)
 - `ffmpeg` (for thumbnail extraction)
 - `notify-send` (for desktop notifications)
 
@@ -36,9 +37,39 @@ When disabling **Show Cursor**:
   sudo setcap cap_sys_admin+ep /usr/bin/gpu-screen-recorder
   ```
 
+## CLI Control via IPC
+
+You can trigger and control the screen recorder directly from the command line using DankMaterialShell IPC commands:
+
+```bash
+# Start full screen recording
+dms ipc screenRecorderLH startScreen
+
+# Start interactive custom region selection and recording
+dms ipc screenRecorderLH startRegion
+
+# Start specific window selection and recording (via Portal)
+dms ipc screenRecorderLH startWindow
+
+# Start portal selection and recording
+dms ipc screenRecorderLH startPortal
+
+# Stop recording
+dms ipc screenRecorderLH stop
+
+# Cancel recording (deletes partial output)
+dms ipc screenRecorderLH cancel
+
+# Pause or resume recording
+dms ipc screenRecorderLH pause
+
+# Get recording status
+dms ipc screenRecorderLH status
+```
+
 ## Roadmap
 
-- [ ] **Region/Window Capture (`-w portal`)** - Enable and stabilize region/window capture utilizing XDG Desktop Portal.
+- [ ] **Window/Portal Capture (`-w portal`)** - Enable and stabilize window/portal capture utilizing XDG Desktop Portal (currently fails on some compositors).
 - [ ] **Instant Replay Buffer (`-r <sec>`)** - Support saving the last N seconds of screen activity in RAM or disk.
 - [ ] **Webcam Overlay (`-w "screen|/dev/video0"`)** - Support embedding a webcam overlay on the recording with custom positioning.
 - [ ] **Application Audio Capture (`-a <app_name>`)** - Support recording audio from a specific application instead of the entire system.

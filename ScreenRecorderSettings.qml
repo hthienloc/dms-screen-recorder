@@ -274,6 +274,41 @@ PluginSettings {
         }
     }
 
+    SettingsCard {
+        SectionTitle {
+            text: I18n.tr("CLI IPC Controls")
+            icon: "terminal"
+        }
+
+        Column {
+            width: parent.width
+            spacing: Theme.spacingS
+
+            StyledText {
+                width: parent.width
+                wrapMode: Text.WordWrap
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.surfaceVariantText
+                text: I18n.tr("You can control screen recording directly from your terminal using the following DMS IPC commands:")
+            }
+
+            StyledText {
+                width: parent.width
+                wrapMode: Text.WordWrap
+                font.pixelSize: Theme.fontSizeSmall
+                font.family: "monospace"
+                color: Theme.primary
+                text: "• " + I18n.tr("Start Screen recording:") + " dms ipc screenRecorderLH startScreen\n" +
+                      "• " + I18n.tr("Start Region selection:") + " dms ipc screenRecorderLH startRegion\n" +
+                      "• " + I18n.tr("Start Window portal:") + " dms ipc screenRecorderLH startWindow\n" +
+                      "• " + I18n.tr("Start Portal selection:") + " dms ipc screenRecorderLH startPortal\n" +
+                      "• " + I18n.tr("Stop recording:") + " dms ipc screenRecorderLH stop\n" +
+                      "• " + I18n.tr("Cancel recording:") + " dms ipc screenRecorderLH cancel\n" +
+                      "• " + I18n.tr("Pause/Resume recording:") + " dms ipc screenRecorderLH pause"
+            }
+        }
+    }
+
     PluginAbout {
         repoUrl: "https://github.com/hthienloc/dms-screen-recorder"
     }
