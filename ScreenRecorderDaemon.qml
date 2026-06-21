@@ -112,6 +112,7 @@ PluginComponent {
                     Proc.runCommand("screenRecorderLH.cancel", ["rm", "-f", root.outputPath]);
                 }
                 root.isCancelling = false;
+                root.outputPath = "";
                 return;
             }
 
