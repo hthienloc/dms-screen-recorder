@@ -206,6 +206,21 @@ PluginComponent {
                 if (exitCode === 0 && stdout) {
                     var geom = stdout.trim();
                     if (geom) {
+                        var match = geom.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
+                        if (match) {
+                            var w = parseInt(match[1]) || 0;
+                            var h = parseInt(match[2]) || 0;
+                            var x = parseInt(match[3]) || 0;
+                            var y = parseInt(match[4]) || 0;
+                            
+                            if (w % 2 !== 0) w--;
+                            if (h % 2 !== 0) h--;
+                            
+                            if (w < 2) w = 2;
+                            if (h < 2) h = 2;
+                            
+                            geom = w + "x" + h + "+" + x + "+" + y;
+                        }
                         root.regionGeometry = geom;
                         root.proceedToRecord(activeMode, geom);
                     } else {
