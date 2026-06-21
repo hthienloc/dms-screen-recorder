@@ -18,7 +18,7 @@ PluginComponent {
     readonly property bool blinkRecordDot: pluginData.blinkRecordDot ?? false
     readonly property bool showRecordingDot: pluginData.showRecordingDot ?? true
     readonly property bool showPillBorder: pluginData.showPillBorder ?? false
-    readonly property int recordingIconSize: showPillBorder ? Theme.iconSizeSmall : Theme.iconSize
+    readonly property int recordingIconSize: showPillBorder ? 12 : Theme.iconSizeSmall
 
     // Blinking Timer for recording dot
     Timer {
@@ -56,7 +56,7 @@ PluginComponent {
     // DankBar widget
     horizontalBarPill: Component {
         Item {
-            implicitWidth: daemon && daemon.isRecording ? (recordRow.implicitWidth + (showPillBorder ? Theme.spacingM * 2 : 0)) : Theme.iconSize
+            implicitWidth: daemon && daemon.isRecording ? (recordRow.implicitWidth + (showPillBorder ? Theme.spacingM * 2 : 0)) : Theme.iconSizeSmall
             implicitHeight: Theme.iconSize
             anchors.verticalCenter: parent.verticalCenter
 
@@ -80,7 +80,7 @@ PluginComponent {
                 DankIcon {
                     visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
-                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSize
+                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
                     opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
                     anchors.verticalCenter: parent.verticalCenter
@@ -160,7 +160,7 @@ PluginComponent {
                 DankIcon {
                     visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
-                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSize
+                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
                     opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
                     anchors.horizontalCenter: parent.horizontalCenter
