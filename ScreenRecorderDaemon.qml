@@ -18,6 +18,7 @@ PluginComponent {
     property int recordingSeconds: 0
     property string outputPath: ""
     property string recordingState: "idle" // "idle", "starting", "recording", "paused"
+    property bool isCancelling: false
 
     // Settings preferences
     property string outputDirectory: pluginData.outputDirectory ?? "~/Videos/Recordings"
@@ -104,11 +105,20 @@ PluginComponent {
             root.recordingState = "idle";
             root.isRecording = false;
             root.isPaused = false;
-            
+
+            if (root.isCancelling) {
+                // Delete the partial/finalized file and suppress notification
+                if (root.outputPath) {
+                    Proc.runCommand("screenRecorderLH.cancel", ["rm", "-f", root.outputPath]);
+                }
+                root.isCancelling = false;
+                return;
+            }
+
             if (exitCode === 0) {
                 const videoPath = root.outputPath.replace(/^file:\/\//, "");
                 const thumbPath = "/tmp/dms_screen_recorder_thumb.png";
-                Proc.runCommand("screenRecorder.extractThumb", ["ffmpeg", "-y", "-i", videoPath, "-ss", "00:00:00", "-frames:v", "1", thumbPath], (stdout, extractExitCode) => {
+                Proc.runCommand("screenRecorderLH.extractThumb", ["ffmpeg", "-y", "-i", videoPath, "-ss", "00:00:00", "-frames:v", "1", thumbPath], (stdout, extractExitCode) => {
                     const useThumb = (extractExitCode === 0);
                     root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + root.outputPath, useThumb ? thumbPath : "");
                 });
@@ -265,17 +275,16 @@ PluginComponent {
     function cancelRecording() {
         if (root.recordingState === "idle") return;
 
-        recorderProcess.running = false;
+        root.isCancelling = true;
         safetyTimer.stop();
         fileCheckTimer.stop();
-
-        if (root.outputPath) {
-            Proc.runCommand("screenRecorder.cancel", ["rm", "-f", root.outputPath]);
-        }
-
         root.recordingState = "idle";
         root.isRecording = false;
         root.isPaused = false;
+
+        // SIGKILL prevents gpu-screen-recorder from finalizing the file;
+        // file deletion happens in onExited after process is confirmed dead.
+        Proc.runCommand("screenRecorderLH.kill", ["killall", "-KILL", "gpu-screen-recorder"]);
     }
 
     IpcHandler {

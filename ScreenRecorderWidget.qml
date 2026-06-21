@@ -17,7 +17,7 @@ PluginComponent {
 
     readonly property var daemon: PluginService.getGlobalVar(pluginId, "instance")
     readonly property bool blinkRecordDot: pluginData.blinkRecordDot ?? false
-    readonly property bool showRecordingDot: pluginData.showRecordingDot ?? true
+    readonly property bool showRecordingDot: pluginData.showRecordingDot ?? false
     readonly property bool showPillBorder: pluginData.showPillBorder ?? false
     readonly property int recordingIconSize: showPillBorder ? 12 : Theme.iconSizeSmall
 
