@@ -542,11 +542,11 @@ PluginComponent {
                                 var codec = daemon.videoCodec || "auto";
                                 
                                 var pixelRate = w * h * fps;
-                                var bppFactor = 0.22;
-                                if (quality === "medium") bppFactor = 0.07;
-                                else if (quality === "high") bppFactor = 0.14;
-                                else if (quality === "very_high") bppFactor = 0.22;
-                                else if (quality === "ultra") bppFactor = 0.60;
+                                var bppFactor = 0.037;
+                                if (quality === "medium") bppFactor = 0.012;
+                                else if (quality === "high") bppFactor = 0.020;
+                                else if (quality === "very_high") bppFactor = 0.037;
+                                else if (quality === "ultra") bppFactor = 0.10;
                                 
                                 var codecFactor = 1.0;
                                 if (codec === "hevc") codecFactor = 0.75;
