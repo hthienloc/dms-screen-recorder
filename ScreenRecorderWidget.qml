@@ -81,13 +81,30 @@ PluginComponent {
                 anchors.centerIn: parent
                 spacing: daemon && daemon.isRecording ? Theme.spacingS : 0
 
-                DankIcon {
-                    visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
-                    name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
-                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSizeSmall
-                    color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
-                    opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
+                Item {
+                    id: hIconWrapper
+                    readonly property bool spinning: daemon ? daemon.isProcessing : false
+                    width: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSizeSmall
+                    height: width
                     anchors.verticalCenter: parent.verticalCenter
+                    visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
+
+                    DankIcon {
+                        anchors.centerIn: parent
+                        name: hIconWrapper.spinning ? "sync" : (daemon && daemon.isRecording ? "fiber_manual_record" : "videocam")
+                        size: parent.width
+                        color: hIconWrapper.spinning ? Theme.primary : (daemon && daemon.isRecording ? Theme.error : Theme.surfaceText)
+                        opacity: (!hIconWrapper.spinning && daemon && daemon.isRecording) ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
+
+                        RotationAnimator on rotation {
+                            id: hSpinAnim
+                            running: hIconWrapper.spinning
+                            from: 0; to: 360
+                            duration: 1000
+                            loops: Animation.Infinite
+                            onRunningChanged: if (!running) target.rotation = 0
+                        }
+                    }
                 }
 
                 StyledText {
@@ -197,13 +214,30 @@ PluginComponent {
                 anchors.centerIn: parent
                 spacing: Theme.spacingXS
 
-                DankIcon {
-                    visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
-                    name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
-                    size: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSizeSmall
-                    color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
-                    opacity: daemon && daemon.isRecording ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
+                Item {
+                    id: vIconWrapper
+                    readonly property bool spinning: daemon ? daemon.isProcessing : false
+                    width: daemon && daemon.isRecording ? root.recordingIconSize : Theme.iconSizeSmall
+                    height: width
                     anchors.horizontalCenter: parent.horizontalCenter
+                    visible: daemon ? (daemon.isRecording ? root.showRecordingDot : true) : true
+
+                    DankIcon {
+                        anchors.centerIn: parent
+                        name: vIconWrapper.spinning ? "sync" : (daemon && daemon.isRecording ? "fiber_manual_record" : "videocam")
+                        size: parent.width
+                        color: vIconWrapper.spinning ? Theme.primary : (daemon && daemon.isRecording ? Theme.error : Theme.surfaceText)
+                        opacity: (!vIconWrapper.spinning && daemon && daemon.isRecording) ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
+
+                        RotationAnimator on rotation {
+                            id: vSpinAnim
+                            running: vIconWrapper.spinning
+                            from: 0; to: 360
+                            duration: 1000
+                            loops: Animation.Infinite
+                            onRunningChanged: if (!running) target.rotation = 0
+                        }
+                    }
                 }
 
                 StyledText {
@@ -257,6 +291,32 @@ PluginComponent {
             id: popoutComp
             headerText: I18n.tr("Screen Recorder")
             detailsText: daemon ? (daemon.recordingState === "starting" ? I18n.tr("Confirm region in portal...") : (daemon.isRecording ? I18n.tr("Recording active") : I18n.tr("Ready to record"))) : ""
+
+            headerActions: Component {
+                Rectangle {
+                    width: 32
+                    height: 32
+                    radius: 16
+                    color: folderArea.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.15) : "transparent"
+
+                    DankIcon {
+                        anchors.centerIn: parent
+                        name: "folder_open"
+                        size: Theme.iconSize - 4
+                        color: folderArea.containsMouse ? Theme.primary : Theme.surfaceVariantText
+                    }
+
+                    MouseArea {
+                        id: folderArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (daemon) daemon.openOutputFolder();
+                        }
+                    }
+                }
+            }
 
             Column {
                 width: parent.width
@@ -381,13 +441,12 @@ PluginComponent {
                             }
 
                             DankButton {
-                                visible: false // temporarily hidden
                                 text: I18n.tr("Window")
-                                backgroundColor: (daemon && daemon.recordingMode === "window") ? Theme.primary : Theme.surfaceContainerHigh
-                                textColor: (daemon && daemon.recordingMode === "window") ? Theme.onPrimary : Theme.surfaceText
+                                backgroundColor: (daemon && daemon.recordingMode === "portal") ? Theme.primary : Theme.surfaceContainerHigh
+                                textColor: (daemon && daemon.recordingMode === "portal") ? Theme.onPrimary : Theme.surfaceText
                                 buttonHeight: 28
                                 onClicked: {
-                                    if (daemon) daemon.recordingMode = "window";
+                                    if (daemon) daemon.recordingMode = "portal";
                                 }
                             }
                         }

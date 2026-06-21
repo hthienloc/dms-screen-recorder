@@ -16,6 +16,7 @@ PluginComponent {
 
     property bool isRecording: false
     property bool isPaused: false
+    property bool isProcessing: false
     property int recordingSeconds: 0
     property string outputPath: ""
     property string recordingState: "idle" // "idle", "starting", "recording", "paused"
@@ -46,6 +47,7 @@ PluginComponent {
         return parseInt(fr) || 60;
     }
     property string postNotification: pluginData.postNotification ?? "notification"
+    property bool openVideoOnFinish: pluginData.openVideoOnFinish ?? false
     property string targetMonitor: pluginData.targetMonitor ?? "all"
     property string recordingMode: pluginData.recordingMode ?? "screen"
     property string regionGeometry: pluginData.regionGeometry ?? "1028x768+100+100"
@@ -127,6 +129,9 @@ PluginComponent {
         running: false
         
         onExited: exitCode => {
+            const prevMode = root.activeRecordingMode;
+            const prevState = root.recordingState;
+
             safetyTimer.stop();
             fileCheckTimer.stop();
             root.recordingState = "idle";
@@ -148,7 +153,16 @@ PluginComponent {
                 const videoPath = root.outputPath.replace(/^file:\/\//, "");
                 root.performPostProcessing(videoPath);
             } else {
-                root.sendFinishedNotification(true, I18n.tr("Recording failed with exit code: ") + exitCode);
+                if ((prevMode === "portal" || prevMode === "window") && prevState === "starting") {
+                    if (typeof ToastService !== "undefined" && ToastService) {
+                        ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Window selection canceled."));
+                    }
+                    if (root.outputPath) {
+                        Proc.runCommand("screenRecorderLH.cancel", ["rm", "-f", root.outputPath]);
+                    }
+                } else {
+                    root.sendFinishedNotification(true, I18n.tr("Recording failed with exit code: ") + exitCode);
+                }
             }
         }
     }
@@ -195,6 +209,8 @@ PluginComponent {
             root.finalizeRecording(videoPath);
             return;
         }
+
+        root.isProcessing = true;
 
         var ffmpegArgs = ["ffmpeg", "-y", "-i", videoPath];
 
@@ -254,6 +270,7 @@ PluginComponent {
         Proc.runCommand("screenRecorderLH.extractThumb", ["ffmpeg", "-y", "-i", videoPath, "-ss", "00:00:00", "-frames:v", "1", thumbPath], (stdout, extractExitCode) => {
             const useThumb = (extractExitCode === 0);
             root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + videoPath, useThumb ? thumbPath : "");
+            root.isProcessing = false;
         });
 
         if (root.postRecordCommand && root.postRecordCommand.trim() !== "") {
@@ -262,6 +279,17 @@ PluginComponent {
             console.log("[ScreenRecorderDaemon] Executing post-record command: " + cmdStr);
             Proc.runCommand("screenRecorderLH.postRecordCommand", ["sh", "-c", cmdStr]);
         }
+
+        if (root.openVideoOnFinish) {
+            console.log("[ScreenRecorderDaemon] Opening video: " + videoPath);
+            Quickshell.execDetached(["xdg-open", videoPath]);
+        }
+    }
+
+    function openOutputFolder() {
+        const homeDir = Quickshell.env("HOME");
+        const dir = root.outputDirectory.replace(/^~/, homeDir);
+        Proc.runCommand("screenRecorderLH.openFolder", ["bash", "-c", "xdg-open '" + dir + "'"], null, 0);
     }
 
     function formatDuration(totalSeconds) {
@@ -399,6 +427,7 @@ PluginComponent {
             root.recordingState = "starting";
             root.activeRecordingMode = activeMode;
             
+            safetyTimer.interval = (activeMode === "portal" || activeMode === "window") ? 120000 : 15000;
             safetyTimer.restart();
         });
     }

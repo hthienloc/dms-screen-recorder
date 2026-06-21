@@ -29,13 +29,20 @@ git clone https://github.com/hthienloc/dms-screen-recorder ~/.config/DankMateria
 - `ffmpeg` (for thumbnail extraction)
 - `notify-send` (for desktop notifications)
 
-## Wayland Cursor Hiding Note (Important)
+## Wayland Cursor Hiding & KMS Note (Important)
 
-When disabling **Show Cursor**:
-- **Screen Mode (`-w screen`)**: Direct KMS capture can hide the cursor. However, it requires root permissions or special capabilities:
+- **Screen Mode (`-w screen` / KMS Capture)**: KMS capture requires special capabilities to interact with the display compositor directly:
   ```bash
-  sudo setcap cap_sys_admin+ep /usr/bin/gpu-screen-recorder
+  sudo setcap cap_sys_admin+ep /usr/bin/gsr-kms-server
   ```
+- **Window Mode (`-w portal` / Portal Capture)**: 
+  > [!IMPORTANT]
+  > Do **not** apply `setcap` to `/usr/bin/gpu-screen-recorder` itself. Doing so will make it a privileged process, blocking `xdg-desktop-portal` (running under your normal user namespace) from verifying it. This will cause window selection to fail with `Portal operation not allowed`.
+  >
+  > If you have previously applied it, remove it via:
+  > ```bash
+  > sudo setcap -r /usr/bin/gpu-screen-recorder
+  > ```
 
 ## CLI Control via IPC
 
@@ -72,7 +79,7 @@ dms ipc screenRecorderLH status
 
 ## Roadmap
 
-- [ ] **Window & Portal Recording Modes** - Fully implement and stabilize Window and Portal selection modes using the XDG Desktop Portal interface (`-w portal`), resolving DBus integration and compositor backend compatibility under Niri.
+- [x] **Window Recording Mode** - Fully implement and stabilize Window selection mode using the XDG Desktop Portal interface (`-w portal`), resolving DBus integration and compositor backend compatibility.
 - [ ] **Instant Replay Buffer (`-r <sec>`)** - Support saving the last N seconds of screen activity in RAM or disk.
 - [ ] **Webcam Overlay (`-w "screen|/dev/video0"`)** - Support embedding a webcam overlay on the recording with custom positioning.
 - [ ] **Application Audio Capture (`-a <app_name>`)** - Support recording audio from a specific application instead of the entire system.

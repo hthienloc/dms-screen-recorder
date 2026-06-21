@@ -95,8 +95,8 @@ PluginSettings {
             label: I18n.tr("Recording Source")
             options: [
                 { label: I18n.tr("Full Screen"), value: "screen" },
-                { label: I18n.tr("Custom Region"), value: "region" }
-                // { label: I18n.tr("Active Window"), value: "window" }
+                { label: I18n.tr("Custom Region"), value: "region" },
+                { label: I18n.tr("Window"), value: "portal" }
             ]
             defaultValue: "screen"
         }
@@ -218,16 +218,6 @@ PluginSettings {
             icon: "video_settings"
         }
 
-        StringSettingPlus {
-            settingKey: "postRecordCommand"
-            label: I18n.tr("Post-Recording Command")
-            description: I18n.tr("Command to run after recording finishes. Use $1 to reference the file path.")
-            defaultValue: ""
-            placeholder: "e.g. handbrake-cli -i $1 ..."
-        }
-
-        SettingsDivider {}
-
         ButtonGroupSettingPlus {
             settingKey: "compressVideo"
             label: I18n.tr("Post-Compression Format")
@@ -245,7 +235,7 @@ PluginSettings {
 
         ButtonGroupSettingPlus {
             settingKey: "targetResolution"
-            label: I18n.tr("Target Resolution")
+            label: I18n.tr("Target Resolution (WIP)")
             description: I18n.tr("Downscale video resolution to reduce size (maintains aspect ratio).")
             defaultValue: "original"
             options: [
@@ -264,6 +254,25 @@ PluginSettings {
             description: I18n.tr("Automatically target a specific file size (0 for unlimited).")
             defaultValue: "0"
             placeholder: "e.g. 50"
+        }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "openVideoOnFinish"
+            label: I18n.tr("Open Video on Completion")
+            description: I18n.tr("Automatically open the video using the default system player after recording finishes.")
+            defaultValue: false
+        }
+
+        SettingsDivider {}
+
+        StringSettingPlus {
+            settingKey: "postRecordCommand"
+            label: I18n.tr("Post-Recording Command")
+            description: I18n.tr("Command to run after recording finishes. Use $1 to reference the file path.")
+            defaultValue: ""
+            placeholder: "e.g. handbrake-cli -i $1 ..."
         }
     }
 
