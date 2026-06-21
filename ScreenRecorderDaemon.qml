@@ -27,7 +27,29 @@ PluginComponent {
         return parseInt(fr) || 60;
     }
 
-    // Recording duration timer
+
+    property bool gpuScreenRecorderMissing: false
+
+    Process {
+        id: binaryCheck
+        command: ["sh", "-c", "command -v gpu-screen-recorder >/dev/null 2>&1"]
+        running: true
+        onExited: exitCode => {
+            root.gpuScreenRecorderMissing = (exitCode !== 0);
+        }
+    }
+
+    Timer {
+        id: safetyTimer
+        interval: 1000
+        repeat: false
+        onTriggered: {
+            if (root.isRecording && !recorderProcess.running) {
+                root.isRecording = false;
+                root.isPaused = false;
+            }
+        }
+    }
     Timer {
         id: durationTimer
         interval: 1000
@@ -44,6 +66,7 @@ PluginComponent {
         running: false
         
         onExited: exitCode => {
+            safetyTimer.stop();
             root.isRecording = false;
             root.isPaused = false;
             
@@ -81,6 +104,13 @@ PluginComponent {
     function startRecording() {
         if (root.isRecording) return;
 
+        if (root.gpuScreenRecorderMissing) {
+            if (typeof ToastService !== "undefined" && ToastService) {
+                ToastService.showError(I18n.tr("Screen Recorder"), I18n.tr("gpu-screen-recorder is not installed. Please install it first."));
+            }
+            return;
+        }
+
         // Resolve home directory
         var homeDir = Quickshell.env("HOME");
         var resolvedDir = root.outputDirectory.replace(/^~/, homeDir);
@@ -109,6 +139,8 @@ PluginComponent {
             root.isPaused = false;
             root.recordingSeconds = 0;
             
+            safetyTimer.restart();
+
             if (typeof ToastService !== "undefined" && ToastService) {
                 ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording started"));
             }
@@ -136,6 +168,7 @@ PluginComponent {
         if (!root.isRecording) return;
 
         Proc.runCommand("screenRecorder.stop", ["sh", "-c", "killall -CONT gpu-screen-recorder; killall -INT gpu-screen-recorder"]);
+        safetyTimer.restart();
     }
 
     IpcHandler {
