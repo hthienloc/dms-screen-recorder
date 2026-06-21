@@ -170,11 +170,17 @@ PluginComponent {
 
             MouseArea {
                 anchors.fill: parent
-                acceptedButtons: Qt.LeftButton
+                acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 cursorShape: Qt.PointingHandCursor
                 visible: daemon ? !daemon.isRecording : true
-                onClicked: {
-                    root.triggerPopout();
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.LeftButton) {
+                        root.triggerPopout();
+                    } else if (mouse.button === Qt.RightButton) {
+                        if (daemon) daemon.startRecording("region");
+                    } else if (mouse.button === Qt.MiddleButton) {
+                        if (daemon) daemon.startRecording("screen");
+                    }
                 }
             }
         }
@@ -211,12 +217,21 @@ PluginComponent {
 
             MouseArea {
                 anchors.fill: parent
+                acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
+                onClicked: (mouse) => {
                     if (daemon && daemon.isRecording) {
-                        daemon.stopRecording();
+                        if (mouse.button === Qt.LeftButton) {
+                            daemon.stopRecording();
+                        }
                     } else {
-                        root.triggerPopout();
+                        if (mouse.button === Qt.LeftButton) {
+                            root.triggerPopout();
+                        } else if (mouse.button === Qt.RightButton) {
+                            if (daemon) daemon.startRecording("region");
+                        } else if (mouse.button === Qt.MiddleButton) {
+                            if (daemon) daemon.startRecording("screen");
+                        }
                     }
                 }
             }
