@@ -16,6 +16,7 @@ PluginComponent {
 
     readonly property var daemon: PluginService.getGlobalVar(pluginId, "instance")
     readonly property bool blinkRecordDot: pluginData.blinkRecordDot ?? false
+    readonly property bool showRecordingDot: pluginData.showRecordingDot ?? true
 
     // Blinking Timer for recording dot
     Timer {
@@ -72,9 +73,10 @@ PluginComponent {
             Row {
                 id: recordRow
                 anchors.centerIn: parent
-                spacing: daemon && daemon.isRecording ? Theme.spacingS : 0
+                spacing: daemon && daemon.isRecording ? (showRecordingDot ? Theme.spacingS : 0) : 0
 
                 DankIcon {
+                    visible: daemon ? (daemon.isRecording ? daemon.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
                     size: Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
@@ -154,6 +156,7 @@ PluginComponent {
                 spacing: Theme.spacingXS
 
                 DankIcon {
+                    visible: daemon ? (daemon.isRecording ? daemon.showRecordingDot : true) : true
                     name: daemon && daemon.isRecording ? "fiber_manual_record" : "videocam"
                     size: Theme.iconSizeSmall
                     color: daemon && daemon.isRecording ? Theme.error : Theme.surfaceText
@@ -192,7 +195,7 @@ PluginComponent {
         PopoutComponent {
             id: popoutComp
             headerText: I18n.tr("Screen Recorder")
-            detailsText: daemon && daemon.isRecording ? I18n.tr("Recording active") : I18n.tr("Ready to record")
+            detailsText: daemon ? (daemon.recordingState === "starting" ? I18n.tr("Confirm region in portal...") : (daemon.isRecording ? I18n.tr("Recording active") : I18n.tr("Ready to record"))) : ""
 
             Column {
                 width: parent.width
@@ -213,7 +216,7 @@ PluginComponent {
 
                     // --- IDLE STATE BUTTONS ---
                     DankButton {
-                        visible: daemon ? !daemon.isRecording : true
+                        visible: daemon ? (daemon.recordingState === "idle") : true
                         text: I18n.tr("Screen")
                         iconName: "fullscreen"
                         backgroundColor: Theme.primary
@@ -226,7 +229,7 @@ PluginComponent {
                     }
 
                     DankButton {
-                        visible: daemon ? !daemon.isRecording : true
+                        visible: daemon ? (daemon.recordingState === "idle") : true
                         text: I18n.tr("Region/Window")
                         iconName: "aspect_ratio"
                         backgroundColor: Theme.surfaceContainerHigh
@@ -240,7 +243,7 @@ PluginComponent {
 
                     // --- RECORDING STATE BUTTONS ---
                     DankButton {
-                        visible: daemon ? daemon.isRecording : false
+                        visible: daemon ? (daemon.recordingState === "recording" || daemon.recordingState === "paused") : false
                         text: daemon && daemon.isPaused ? I18n.tr("Resume") : I18n.tr("Pause")
                         iconName: daemon && daemon.isPaused ? "play_arrow" : "pause"
                         backgroundColor: Theme.surfaceContainerHigh
@@ -252,7 +255,7 @@ PluginComponent {
                     }
 
                     DankButton {
-                        visible: daemon ? daemon.isRecording : false
+                        visible: daemon ? (daemon.recordingState === "recording" || daemon.recordingState === "paused") : false
                         text: I18n.tr("Stop")
                         iconName: "stop"
                         backgroundColor: Theme.error
@@ -265,7 +268,7 @@ PluginComponent {
                     }
 
                     DankButton {
-                        visible: daemon ? daemon.isRecording : false
+                        visible: daemon ? (daemon.recordingState === "starting" || daemon.recordingState === "recording" || daemon.recordingState === "paused") : false
                         text: I18n.tr("Cancel")
                         iconName: "delete"
                         backgroundColor: Theme.surfaceContainerHigh

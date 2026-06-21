@@ -72,6 +72,15 @@ PluginSettings {
         SettingsDivider {}
 
         ToggleSettingPlus {
+            settingKey: "showRecordingDot"
+            label: I18n.tr("Show Recording Dot")
+            description: I18n.tr("Show the red recording status dot in the bar widget.")
+            defaultValue: true
+        }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
             settingKey: "blinkRecordDot"
             label: I18n.tr("Blink Recording Dot")
             description: I18n.tr("Blink the red recording status dot in the bar widget.")

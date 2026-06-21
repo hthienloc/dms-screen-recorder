@@ -17,6 +17,7 @@ PluginComponent {
     property bool isPaused: false
     property int recordingSeconds: 0
     property string outputPath: ""
+    property string recordingState: "idle" // "idle", "starting", "recording", "paused"
 
     // Settings preferences
     readonly property string outputDirectory: pluginData.outputDirectory ?? "~/Videos/Recordings"
@@ -41,13 +42,37 @@ PluginComponent {
 
     Timer {
         id: safetyTimer
-        interval: 1000
+        interval: 15000 // wait longer for portal confirmation
         repeat: false
         onTriggered: {
-            if (root.isRecording && !recorderProcess.running) {
+            if (root.recordingState === "starting" || (root.isRecording && !recorderProcess.running)) {
+                fileCheckTimer.stop();
+                root.recordingState = "idle";
                 root.isRecording = false;
                 root.isPaused = false;
             }
+        }
+    }
+
+    Timer {
+        id: fileCheckTimer
+        interval: 300
+        repeat: true
+        running: root.recordingState === "starting"
+        onTriggered: {
+            Proc.runCommand("screenRecorder.checkFile", ["test", "-s", root.outputPath], (stdout, exitCode) => {
+                if (exitCode === 0) {
+                    fileCheckTimer.stop();
+                    root.recordingState = "recording";
+                    root.isRecording = true;
+                    root.isPaused = false;
+                    root.recordingSeconds = 0;
+                    
+                    if (typeof ToastService !== "undefined" && ToastService) {
+                        ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording started"));
+                    }
+                }
+            });
         }
     }
     Timer {
@@ -67,6 +92,8 @@ PluginComponent {
         
         onExited: exitCode => {
             safetyTimer.stop();
+            fileCheckTimer.stop();
+            root.recordingState = "idle";
             root.isRecording = false;
             root.isPaused = false;
             
@@ -102,7 +129,7 @@ PluginComponent {
     }
 
     function startRecording(sourceType) {
-        if (root.isRecording) return;
+        if (root.recordingState !== "idle") return;
 
         if (root.gpuScreenRecorderMissing) {
             if (typeof ToastService !== "undefined" && ToastService) {
@@ -136,15 +163,9 @@ PluginComponent {
             recorderProcess.command = args;
             recorderProcess.running = true;
             
-            root.isRecording = true;
-            root.isPaused = false;
-            root.recordingSeconds = 0;
+            root.recordingState = "starting";
             
             safetyTimer.restart();
-
-            if (typeof ToastService !== "undefined" && ToastService) {
-                ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording started"));
-            }
         });
     }
 
@@ -152,6 +173,7 @@ PluginComponent {
         if (!root.isRecording) return;
 
         root.isPaused = !root.isPaused;
+        root.recordingState = root.isPaused ? "paused" : "recording";
         
         var signal = root.isPaused ? "-STOP" : "-CONT";
         Proc.runCommand("screenRecorder.signal", ["killall", signal, "gpu-screen-recorder"], (stdout, exitCode) => {
@@ -173,15 +195,17 @@ PluginComponent {
     }
 
     function cancelRecording() {
-        if (!root.isRecording) return;
+        if (root.recordingState === "idle") return;
 
         recorderProcess.running = false;
         safetyTimer.stop();
+        fileCheckTimer.stop();
 
         if (root.outputPath) {
             Proc.runCommand("screenRecorder.cancel", ["rm", "-f", root.outputPath]);
         }
 
+        root.recordingState = "idle";
         root.isRecording = false;
         root.isPaused = false;
 
@@ -227,6 +251,7 @@ PluginComponent {
 
         function status(): string {
             return JSON.stringify({
+                "recordingState": root.recordingState,
                 "isRecording": root.isRecording,
                 "isPaused": root.isPaused,
                 "duration": root.recordingSeconds,
