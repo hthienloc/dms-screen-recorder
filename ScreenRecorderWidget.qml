@@ -96,13 +96,13 @@ PluginComponent {
                         color: hIconWrapper.spinning ? Theme.primary : (daemon && daemon.isRecording ? Theme.error : Theme.surfaceText)
                         opacity: (!hIconWrapper.spinning && daemon && daemon.isRecording) ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
 
-                        RotationAnimator on rotation {
+                        RotationAnimation on rotation {
                             id: hSpinAnim
                             running: hIconWrapper.spinning
                             from: 0; to: 360
                             duration: 1000
                             loops: Animation.Infinite
-                            onRunningChanged: if (!running) target.rotation = 0
+                            onRunningChanged: if (!running) rotation = 0
                         }
                     }
                 }
@@ -229,13 +229,13 @@ PluginComponent {
                         color: vIconWrapper.spinning ? Theme.primary : (daemon && daemon.isRecording ? Theme.error : Theme.surfaceText)
                         opacity: (!vIconWrapper.spinning && daemon && daemon.isRecording) ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
 
-                        RotationAnimator on rotation {
+                        RotationAnimation on rotation {
                             id: vSpinAnim
                             running: vIconWrapper.spinning
                             from: 0; to: 360
                             duration: 1000
                             loops: Animation.Infinite
-                            onRunningChanged: if (!running) target.rotation = 0
+                            onRunningChanged: if (!running) rotation = 0
                         }
                     }
                 }
