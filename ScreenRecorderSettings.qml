@@ -13,6 +13,8 @@ PluginSettings {
     id: rootSettings
     pluginId: "screenRecorder"
 
+    readonly property var daemon: PluginService.getGlobalVar("screenRecorder", "instance")
+
     SettingsCard {
         SectionTitle {
             text: I18n.tr("Output Configuration")
@@ -41,6 +43,21 @@ PluginSettings {
             ]
             defaultValue: "mp4"
         }
+
+        SettingsDivider {}
+
+        SelectionSettingPlus {
+            settingKey: "videoCodec"
+            label: I18n.tr("Video Codec")
+            description: I18n.tr("Hardware video codec to use.")
+            options: [
+                { label: I18n.tr("Auto Detect"), value: "auto" },
+                { label: "H.264", value: "h264" },
+                { label: "HEVC (H.265)", value: "hevc" },
+                { label: "AV1", value: "av1" }
+            ]
+            defaultValue: "auto"
+        }
     }
 
     SettingsCard {
@@ -48,6 +65,16 @@ PluginSettings {
             text: I18n.tr("Recording Settings")
             icon: "videocam"
         }
+
+        SelectionSettingPlus {
+            settingKey: "targetMonitor"
+            label: I18n.tr("Target Monitor")
+            description: I18n.tr("Select which monitor to record by default.")
+            options: rootSettings.daemon ? rootSettings.daemon.monitorsList : [{ label: I18n.tr("First Monitor Found"), value: "all" }]
+            defaultValue: "all"
+        }
+
+        SettingsDivider {}
 
         ToggleSettingPlus {
             settingKey: "recordAudio"
@@ -59,17 +86,117 @@ PluginSettings {
         SettingsDivider {}
 
         SelectionSettingPlus {
-            settingKey: "framerate"
-            label: I18n.tr("Framerate")
-            description: I18n.tr("Number of frames per second to record.")
+            settingKey: "audioCodec"
+            label: I18n.tr("Audio Codec")
+            description: I18n.tr("Select the audio compression format.")
             options: [
-                { label: "30 FPS", value: "30" },
-                { label: "60 FPS", value: "60" }
+                { label: "Opus", value: "opus" },
+                { label: "AAC", value: "aac" },
+                { label: "FLAC (Lossless)", value: "flac" }
             ]
-            defaultValue: "60"
+            defaultValue: "opus"
         }
 
         SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "showCursor"
+            label: I18n.tr("Show Cursor")
+            description: I18n.tr("Show mouse cursor in the recorded video.")
+            defaultValue: true
+        }
+
+        SettingsDivider {}
+
+        SliderSettingPlus {
+            settingKey: "framerate"
+            label: I18n.tr("Framerate")
+            description: I18n.tr("Number of frames per second to record.")
+            defaultValue: 60
+            minimum: 15
+            maximum: 144
+            unit: " FPS"
+        }
+
+        SettingsDivider {}
+
+        SelectionSettingPlus {
+            settingKey: "videoQuality"
+            label: I18n.tr("Video Quality")
+            description: I18n.tr("Select the video recording quality.")
+            options: [
+                { label: I18n.tr("Medium"), value: "medium" },
+                { label: I18n.tr("High"), value: "high" },
+                { label: I18n.tr("Very High"), value: "very_high" },
+                { label: I18n.tr("Ultra"), value: "ultra" }
+            ]
+            defaultValue: "very_high"
+        }
+    }
+
+    SettingsCard {
+        SectionTitle {
+            text: I18n.tr("Advanced Settings")
+            icon: "tune"
+        }
+
+        ToggleSettingPlus {
+            settingKey: "forceCfr"
+            label: I18n.tr("Constant Frame Rate (CFR)")
+            description: I18n.tr("Force video editing compatibility by avoiding variable frame rates.")
+            defaultValue: false
+        }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "lowPower"
+            label: I18n.tr("Low Power Mode")
+            description: I18n.tr("Run encoder in low power mode (helps AMD graphics cards).")
+            defaultValue: false
+        }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "overclock"
+            label: I18n.tr("GPU Overclock")
+            description: I18n.tr("Avoid GPU downclocking while recording to prevent stutter.")
+            defaultValue: false
+        }
+
+        SettingsDivider {}
+
+        SelectionSettingPlus {
+            settingKey: "encoderTune"
+            label: I18n.tr("Encoder Tuning")
+            description: I18n.tr("Prioritize either recording performance or image quality.")
+            options: [
+                { label: I18n.tr("Performance"), value: "performance" },
+                { label: I18n.tr("Quality"), value: "quality" }
+            ]
+            defaultValue: "performance"
+        }
+
+        SettingsDivider {}
+
+        SelectionSettingPlus {
+            settingKey: "colorRange"
+            label: I18n.tr("Color Range")
+            description: I18n.tr("Select recording color range (Full is recommended for PC playback).")
+            options: [
+                { label: I18n.tr("Full"), value: "full" },
+                { label: I18n.tr("Limited"), value: "limited" }
+            ]
+            defaultValue: "full"
+        }
+    }
+
+    SettingsCard {
+        SectionTitle {
+            text: I18n.tr("Widget Customization")
+            icon: "palette"
+        }
 
         ToggleSettingPlus {
             settingKey: "showPillBorder"
@@ -95,14 +222,25 @@ PluginSettings {
             description: I18n.tr("Blink the red recording status dot in the bar widget.")
             defaultValue: false
         }
+    }
 
-        SettingsDivider {}
+    SettingsCard {
+        SectionTitle {
+            text: I18n.tr("Notifications")
+            icon: "notifications"
+        }
 
-        ToggleSettingPlus {
-            settingKey: "showFinishedNotification"
-            label: I18n.tr("Show Finished Notification")
-            description: I18n.tr("Show a notification when the recording is saved successfully or fails.")
-            defaultValue: true
+        ButtonGroupSettingPlus {
+            settingKey: "postNotification"
+            label: I18n.tr("Post-Recording Notification")
+            description: I18n.tr("Select which types of notifications to show after a recording is saved.")
+            defaultValue: "notification"
+            options: [
+                { label: I18n.tr("Notification"), value: "notification" },
+                { label: I18n.tr("Toast"), value: "toast" },
+                { label: I18n.tr("Both"), value: "both" },
+                { label: I18n.tr("None"), value: "none" }
+            ]
         }
     }
 

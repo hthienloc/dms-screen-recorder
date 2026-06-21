@@ -20,14 +20,25 @@ PluginComponent {
     property string recordingState: "idle" // "idle", "starting", "recording", "paused"
 
     // Settings preferences
-    readonly property string outputDirectory: pluginData.outputDirectory ?? "~/Videos/Recordings"
-    readonly property string videoFormat: pluginData.videoFormat ?? "mp4"
-    readonly property bool recordAudio: pluginData.recordAudio ?? false
-    readonly property int framerate: {
-        var fr = pluginData.framerate ?? "60";
+    property string outputDirectory: pluginData.outputDirectory ?? "~/Videos/Recordings"
+    property string videoFormat: pluginData.videoFormat ?? "mp4"
+    property bool recordAudio: pluginData.recordAudio ?? false
+    property bool showCursor: pluginData.showCursor ?? true
+    property string videoQuality: pluginData.videoQuality ?? "very_high"
+    property bool forceCfr: pluginData.forceCfr ?? false
+    property bool lowPower: pluginData.lowPower ?? false
+    property string videoCodec: pluginData.videoCodec ?? "auto"
+    property bool overclock: pluginData.overclock ?? false
+    property string encoderTune: pluginData.encoderTune ?? "performance"
+    property string colorRange: pluginData.colorRange ?? "full"
+    property string audioCodec: pluginData.audioCodec ?? "opus"
+    property int framerate: {
+        var fr = pluginData.framerate ?? 60;
         return parseInt(fr) || 60;
     }
-    readonly property bool showFinishedNotification: pluginData.showFinishedNotification ?? true
+    property string postNotification: pluginData.postNotification ?? "notification"
+    property string targetMonitor: pluginData.targetMonitor ?? "all"
+    property var monitorsList: [{"label": I18n.tr("First Monitor Found"), "value": "all", "width": 1920, "height": 1080}]
 
 
     property bool gpuScreenRecorderMissing: false
@@ -95,14 +106,49 @@ PluginComponent {
             root.isPaused = false;
             
             if (exitCode === 0) {
-                if (root.showFinishedNotification && typeof ToastService !== "undefined" && ToastService) {
-                    ToastService.showInfo(I18n.tr("Screen Recorder"), I18n.tr("Recording saved to: ") + root.outputPath);
-                }
+                const videoPath = root.outputPath.replace(/^file:\/\//, "");
+                const thumbPath = "/tmp/dms_screen_recorder_thumb.png";
+                Proc.runCommand("screenRecorder.extractThumb", ["ffmpeg", "-y", "-i", videoPath, "-ss", "00:00:00", "-frames:v", "1", thumbPath], (stdout, extractExitCode) => {
+                    const useThumb = (extractExitCode === 0);
+                    root.sendFinishedNotification(false, I18n.tr("Recording saved to: ") + root.outputPath, useThumb ? thumbPath : "");
+                });
             } else {
-                if (root.showFinishedNotification && typeof ToastService !== "undefined" && ToastService) {
-                    ToastService.showError(I18n.tr("Screen Recorder"), I18n.tr("Recording failed with exit code: ") + exitCode);
+                root.sendFinishedNotification(true, I18n.tr("Recording failed with exit code: ") + exitCode);
+            }
+        }
+    }
+
+    function sendFinishedNotification(isError, message, thumbPath) {
+        const mode = root.postNotification;
+        if (mode === "none") return;
+
+        // Toast Notification
+        if (mode === "toast" || mode === "both") {
+            if (typeof ToastService !== "undefined" && ToastService) {
+                if (isError) {
+                    ToastService.showError(I18n.tr("Screen Recorder"), message);
+                } else {
+                    ToastService.showInfo(I18n.tr("Screen Recorder"), message);
                 }
             }
+        }
+
+        // System Notification
+        if (mode === "notification" || mode === "both") {
+            let icon = isError ? "error" : "video-x-generic";
+            if (!isError) {
+                if (thumbPath) {
+                    icon = thumbPath;
+                } else if (root.outputPath) {
+                    icon = root.outputPath.replace(/^file:\/\//, "");
+                }
+            }
+            const title = isError ? I18n.tr("Screen Recorder Error") : I18n.tr("Screen Recorder");
+            const args = ["notify-send", "-a", "Screen Recorder", "-i", icon, title, message];
+            if (isError) {
+                args.push("-u", "critical");
+            }
+            Proc.runCommand("screen-recorder-notify", args);
         }
     }
 
@@ -135,6 +181,12 @@ PluginComponent {
             return;
         }
 
+        if (!root.showCursor && sourceType === "portal") {
+            if (typeof ToastService !== "undefined" && ToastService) {
+                ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Hiding cursor may not work in Region/Window mode on Wayland due to compositor limitations."));
+            }
+        }
+
         // Resolve home directory
         var homeDir = Quickshell.env("HOME");
         var resolvedDir = root.outputDirectory.replace(/^~/, homeDir);
@@ -151,11 +203,38 @@ PluginComponent {
             root.outputPath = resolvedDir + "/recording_" + getTimestampString() + "." + root.videoFormat;
             
             // Build arguments
-            var source = (sourceType === "portal") ? "portal" : "screen";
+            var source = (sourceType === "portal") ? "portal" : (root.targetMonitor === "all" ? "screen" : root.targetMonitor);
             var args = ["gpu-screen-recorder", "-w", source, "-f", root.framerate.toString(), "-o", root.outputPath];
+            args.push("-cursor", root.showCursor ? "yes" : "no");
             if (root.recordAudio) {
                 args.push("-a", "default_output");
+                args.push("-ac", root.audioCodec);
             }
+            
+            // Video Quality (-q)
+            args.push("-q", root.videoQuality);
+            
+            // Constant Frame Rate (-fm cfr)
+            if (root.forceCfr) {
+                args.push("-fm", "cfr");
+            }
+            
+            // Low Power Mode (-low-power yes/no)
+            args.push("-low-power", root.lowPower ? "yes" : "no");
+            
+            // Video Codec (-k)
+            if (root.videoCodec !== "auto") {
+                args.push("-k", root.videoCodec);
+            }
+
+            // GPU Overclock (-oc yes/no)
+            args.push("-oc", root.overclock ? "yes" : "no");
+
+            // Encoder Tuning (-tune performance/quality)
+            args.push("-tune", root.encoderTune);
+
+            // Color Range (-cr limited/full)
+            args.push("-cr", root.colorRange);
 
             recorderProcess.command = args;
             recorderProcess.running = true;
@@ -245,7 +324,51 @@ PluginComponent {
         }
     }
 
+    function refreshMonitors() {
+        Proc.runCommand("screenRecorder.listMonitors", ["gpu-screen-recorder", "--list-monitors"], (stdout, exitCode) => {
+            var defaultObj = {
+                "label": I18n.tr("First Monitor Found"),
+                "value": "all",
+                "width": Screen.width || 1920,
+                "height": Screen.height || 1080
+            };
+            
+            if (exitCode === 0 && stdout) {
+                var lines = stdout.trim().split("\n");
+                var list = [defaultObj];
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (!line) continue;
+                    var parts = line.split("|");
+                    if (parts.length >= 1) {
+                        var name = parts[0];
+                        var res = parts[1] || "";
+                        var w = 1920;
+                        var h = 1080;
+                        if (res) {
+                            var resParts = res.split("x");
+                            if (resParts.length >= 2) {
+                                w = parseInt(resParts[0]) || 1920;
+                                h = parseInt(resParts[1]) || 1080;
+                            }
+                        }
+                        list.push({
+                            "label": name + (res ? " (" + res + ")" : ""),
+                            "value": name,
+                            "width": w,
+                            "height": h
+                        });
+                    }
+                }
+                root.monitorsList = list;
+            } else {
+                root.monitorsList = [defaultObj];
+            }
+        });
+    }
+
     Component.onCompleted: {
         PluginService.setGlobalVar(pluginId, "instance", root);
+        refreshMonitors();
     }
 }
