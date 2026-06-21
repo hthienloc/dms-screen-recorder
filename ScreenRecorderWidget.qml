@@ -416,13 +416,20 @@ PluginComponent {
 
                             Repeater {
                                 model: daemon ? daemon.monitorsList : []
-                                delegate: DankButton {
-                                    text: modelData.value === "all" ? I18n.tr("Auto") : modelData.value
-                                    backgroundColor: (daemon && daemon.targetMonitor === modelData.value) ? Theme.primary : Theme.surfaceContainerHigh
-                                    textColor: (daemon && daemon.targetMonitor === modelData.value) ? Theme.onPrimary : Theme.surfaceText
-                                    buttonHeight: 28
-                                    onClicked: {
-                                        if (daemon) daemon.targetMonitor = modelData.value;
+                                delegate: Item {
+                                    width: btn.width
+                                    height: btn.height
+                                    required property var modelData
+
+                                    DankButton {
+                                        id: btn
+                                        text: modelData.value === "all" ? I18n.tr("Auto") : modelData.value
+                                        backgroundColor: (daemon && daemon.targetMonitor === modelData.value) ? Theme.primary : Theme.surfaceContainerHigh
+                                        textColor: (daemon && daemon.targetMonitor === modelData.value) ? Theme.onPrimary : Theme.surfaceText
+                                        buttonHeight: 28
+                                        onClicked: {
+                                            if (daemon) daemon.targetMonitor = modelData.value;
+                                        }
                                     }
                                 }
                             }
