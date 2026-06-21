@@ -261,70 +261,36 @@ PluginSettings {
     }
 
     SettingsCard {
+        id: ipcSection
         SectionTitle {
-            text: I18n.tr("CLI IPC Controls")
+            id: ipcTitle
+            text: I18n.tr("IPC Commands")
             icon: "terminal"
+            collapsible: true
+            settingKey: "ipcCommandsExpanded"
         }
 
         Column {
             width: parent.width
-            spacing: Theme.spacingM
+            spacing: Theme.spacingS
+            visible: ipcTitle.isExpanded
 
-            StyledText {
-                width: parent.width
-                wrapMode: Text.WordWrap
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.surfaceVariantText
-                text: I18n.tr("Bind screen recorder controls directly inside your Window Manager configuration (Niri, Hyprland, etc.) or custom scripts using the following DMS IPC commands:")
-            }
+            Repeater {
+                model: [
+                    { text: "dms ipc screenRecorderLH toggleScreen", label: I18n.tr("Toggle Full Screen Recording") },
+                    { text: "dms ipc screenRecorderLH toggleRegion", label: I18n.tr("Toggle Custom Region Selection") },
+                    { text: "dms ipc screenRecorderLH toggleSavedRegion", label: I18n.tr("Toggle Saved Region Recording") },
+                    { text: "dms ipc screenRecorderLH toggleWindow", label: I18n.tr("Toggle Active Window Selection (Portal)") },
+                    { text: "dms ipc screenRecorderLH togglePortal", label: I18n.tr("Toggle Portal Selection") },
+                    { text: "dms ipc screenRecorderLH stop", label: I18n.tr("Stop Recording") },
+                    { text: "dms ipc screenRecorderLH cancel", label: I18n.tr("Cancel Recording (Delete File)") },
+                    { text: "dms ipc screenRecorderLH pause", label: I18n.tr("Pause / Resume Recording") },
+                    { text: "dms ipc screenRecorderLH status", label: I18n.tr("Get Recording Status (JSON)") }
+                ]
 
-            Column {
-                width: parent.width
-                spacing: Theme.spacingS
-
-                CopyBox {
-                    label: I18n.tr("Toggle Full Screen Recording")
-                    text: "dms ipc screenRecorderLH toggleScreen"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Toggle Custom Region Selection")
-                    text: "dms ipc screenRecorderLH toggleRegion"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Toggle Saved Region Recording")
-                    text: "dms ipc screenRecorderLH toggleSavedRegion"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Toggle Active Window Selection (Portal)")
-                    text: "dms ipc screenRecorderLH toggleWindow"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Toggle Portal Selection")
-                    text: "dms ipc screenRecorderLH togglePortal"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Stop Recording")
-                    text: "dms ipc screenRecorderLH stop"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Cancel Recording (Delete File)")
-                    text: "dms ipc screenRecorderLH cancel"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Pause / Resume Recording")
-                    text: "dms ipc screenRecorderLH pause"
-                }
-
-                CopyBox {
-                    label: I18n.tr("Get Recording Status (JSON)")
-                    text: "dms ipc screenRecorderLH status"
+                delegate: CopyBox {
+                    label: modelData.label
+                    text: modelData.text
                 }
             }
         }
