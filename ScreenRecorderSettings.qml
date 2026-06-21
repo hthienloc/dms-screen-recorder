@@ -72,8 +72,8 @@ PluginSettings {
             description: I18n.tr("Select the source area to record (Full Screen, Custom Region, or specific Window).")
             options: [
                 { label: I18n.tr("Full Screen"), value: "screen" },
-                { label: I18n.tr("Custom Region"), value: "region" },
-                { label: I18n.tr("Active Window (Wayland)"), value: "window" }
+                { label: I18n.tr("Custom Region"), value: "region" }
+                // { label: I18n.tr("Active Window"), value: "window" }
             ]
             defaultValue: "screen"
         }

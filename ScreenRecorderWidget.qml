@@ -346,6 +346,7 @@ PluginComponent {
                             }
 
                             DankButton {
+                                visible: false // temporarily hidden
                                 text: I18n.tr("Window")
                                 backgroundColor: (daemon && daemon.recordingMode === "window") ? Theme.primary : Theme.surfaceContainerHigh
                                 textColor: (daemon && daemon.recordingMode === "window") ? Theme.onPrimary : Theme.surfaceText
