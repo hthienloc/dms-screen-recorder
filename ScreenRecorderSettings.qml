@@ -67,11 +67,41 @@ PluginSettings {
         }
 
         SelectionSettingPlus {
+            settingKey: "recordingMode"
+            label: I18n.tr("Recording Source")
+            description: I18n.tr("Select the source area to record (Full Screen, Custom Region, or specific Window).")
+            options: [
+                { label: I18n.tr("Full Screen"), value: "screen" },
+                { label: I18n.tr("Custom Region"), value: "region" },
+                { label: I18n.tr("Active Window (Wayland)"), value: "window" }
+            ]
+            defaultValue: "screen"
+        }
+
+        SettingsDivider {
+            visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "region"
+        }
+
+        StringSettingPlus {
+            settingKey: "regionGeometry"
+            label: I18n.tr("Region Geometry")
+            description: I18n.tr("Define recording region size and position in WxH+X+Y format (e.g. 1024x768+100+100).")
+            defaultValue: "1024x768+100+100"
+            placeholder: "1024x768+100+100"
+            visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "region"
+        }
+
+        SettingsDivider {
+            visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "screen"
+        }
+
+        SelectionSettingPlus {
             settingKey: "targetMonitor"
             label: I18n.tr("Target Monitor")
             description: I18n.tr("Select which monitor to record by default.")
             options: rootSettings.daemon ? rootSettings.daemon.monitorsList : [{ label: I18n.tr("First Monitor Found"), value: "all" }]
             defaultValue: "all"
+            visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "screen"
         }
 
         SettingsDivider {}

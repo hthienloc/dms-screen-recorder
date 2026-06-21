@@ -39,6 +39,8 @@ PluginComponent {
     }
     property string postNotification: pluginData.postNotification ?? "notification"
     property string targetMonitor: pluginData.targetMonitor ?? "all"
+    property string recordingMode: pluginData.recordingMode ?? "screen"
+    property string regionGeometry: pluginData.regionGeometry ?? "1028x768+100+100"
     property var monitorsList: [{"label": I18n.tr("First Monitor Found"), "value": "all", "width": 1920, "height": 1080}]
 
 
@@ -192,7 +194,8 @@ PluginComponent {
             return;
         }
 
-        if (!root.showCursor && sourceType === "portal") {
+        var activeMode = sourceType || root.recordingMode;
+        if (!root.showCursor && (activeMode === "window" || activeMode === "portal")) {
             if (typeof ToastService !== "undefined" && ToastService) {
                 ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Hiding cursor may not work in Region/Window mode on Wayland due to compositor limitations."));
             }
@@ -214,7 +217,15 @@ PluginComponent {
             root.outputPath = resolvedDir + "/recording_" + getTimestampString() + "." + root.videoFormat;
             
             // Build arguments
-            var source = (sourceType === "portal") ? "portal" : (root.targetMonitor === "all" ? "screen" : root.targetMonitor);
+            var source = "";
+            if (activeMode === "window" || activeMode === "portal") {
+                source = "portal";
+            } else if (activeMode === "region") {
+                source = root.regionGeometry;
+            } else {
+                source = (root.targetMonitor === "all" ? "screen" : root.targetMonitor);
+            }
+            
             var args = ["gpu-screen-recorder", "-w", source, "-f", root.framerate.toString(), "-o", root.outputPath];
             args.push("-cursor", root.showCursor ? "yes" : "no");
             if (root.recordAudio) {

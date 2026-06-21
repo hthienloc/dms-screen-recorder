@@ -305,11 +305,91 @@ PluginComponent {
 
                     SettingsDivider {}
 
+                    // Recording Source Mode Selector (Segmented buttons)
+                    Item {
+                        width: parent.width
+                        height: 32
+
+                        StyledText {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: I18n.tr("Source")
+                            color: Theme.surfaceText
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        Row {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: Theme.spacingXS
+
+                            DankButton {
+                                text: I18n.tr("Screen")
+                                backgroundColor: (daemon && daemon.recordingMode === "screen") ? Theme.primary : Theme.surfaceContainerHigh
+                                textColor: (daemon && daemon.recordingMode === "screen") ? Theme.onPrimary : Theme.surfaceText
+                                buttonHeight: 28
+                                onClicked: {
+                                    if (daemon) daemon.recordingMode = "screen";
+                                }
+                            }
+
+                            DankButton {
+                                text: I18n.tr("Region")
+                                backgroundColor: (daemon && daemon.recordingMode === "region") ? Theme.primary : Theme.surfaceContainerHigh
+                                textColor: (daemon && daemon.recordingMode === "region") ? Theme.onPrimary : Theme.surfaceText
+                                buttonHeight: 28
+                                onClicked: {
+                                    if (daemon) daemon.recordingMode = "region";
+                                }
+                            }
+
+                            DankButton {
+                                text: I18n.tr("Window")
+                                backgroundColor: (daemon && daemon.recordingMode === "window") ? Theme.primary : Theme.surfaceContainerHigh
+                                textColor: (daemon && daemon.recordingMode === "window") ? Theme.onPrimary : Theme.surfaceText
+                                buttonHeight: 28
+                                onClicked: {
+                                    if (daemon) daemon.recordingMode = "window";
+                                }
+                            }
+                        }
+                    }
+
+                    SettingsDivider {}
+
+                    // Display Region Geometry (Only visible if region mode selected)
+                    Item {
+                        width: parent.width
+                        height: 32
+                        visible: daemon ? (daemon.recordingMode === "region") : false
+
+                        StyledText {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: I18n.tr("Geometry")
+                            color: Theme.surfaceText
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        StyledText {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: daemon ? daemon.regionGeometry : ""
+                            color: Theme.surfaceVariantText
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.family: "Monospace"
+                        }
+                    }
+
+                    SettingsDivider {
+                        visible: daemon ? (daemon.recordingMode === "region") : false
+                    }
+
                     // Monitor Selector (Only visible if multi-monitor detected)
                     Item {
                         width: parent.width
                         height: 32
-                        visible: daemon ? (daemon.monitorsList.length > 2) : false
+                        visible: daemon ? (daemon.recordingMode === "screen" && daemon.monitorsList.length > 2) : false
 
                         StyledText {
                             anchors.left: parent.left
@@ -340,7 +420,7 @@ PluginComponent {
                     }
 
                     SettingsDivider {
-                        visible: daemon ? (daemon.monitorsList.length > 2) : false
+                        visible: daemon ? (daemon.recordingMode === "screen" && daemon.monitorsList.length > 2) : false
                     }
 
                     // Format Selector (Segmented buttons)
@@ -528,15 +608,25 @@ PluginComponent {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: {
                                 if (!daemon) return "";
-                                var selectedMonitorObj = null;
-                                for (var i = 0; i < daemon.monitorsList.length; i++) {
-                                    if (daemon.monitorsList[i].value === daemon.targetMonitor) {
-                                        selectedMonitorObj = daemon.monitorsList[i];
-                                        break;
+                                var w = 1920;
+                                var h = 1080;
+                                if (daemon.recordingMode === "region" && daemon.regionGeometry) {
+                                    var match = daemon.regionGeometry.match(/^(\d+)x(\d+)/);
+                                    if (match) {
+                                        w = parseInt(match[1]) || 1920;
+                                        h = parseInt(match[2]) || 1080;
                                     }
+                                } else {
+                                    var selectedMonitorObj = null;
+                                    for (var i = 0; i < daemon.monitorsList.length; i++) {
+                                        if (daemon.monitorsList[i].value === daemon.targetMonitor) {
+                                            selectedMonitorObj = daemon.monitorsList[i];
+                                            break;
+                                        }
+                                    }
+                                    w = selectedMonitorObj ? selectedMonitorObj.width : (Screen.width || 1920);
+                                    h = selectedMonitorObj ? selectedMonitorObj.height : (Screen.height || 1080);
                                 }
-                                var w = selectedMonitorObj ? selectedMonitorObj.width : (Screen.width || 1920);
-                                var h = selectedMonitorObj ? selectedMonitorObj.height : (Screen.height || 1080);
                                 var fps = daemon.framerate || 60;
                                 var quality = daemon.videoQuality || "very_high";
                                 var codec = daemon.videoCodec || "auto";
@@ -584,7 +674,7 @@ PluginComponent {
                         buttonHeight: 40
                         anchors.horizontalCenter: parent.horizontalCenter
                         onClicked: {
-                            if (daemon) daemon.startRecording("screen");
+                            if (daemon) daemon.startRecording();
                             popoutComp.closePopout();
                         }
                     }
