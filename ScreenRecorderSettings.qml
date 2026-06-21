@@ -55,6 +55,33 @@ PluginSettings {
             ]
             defaultValue: "auto"
         }
+
+        SettingsDivider {}
+
+        ButtonGroupSettingPlus {
+            settingKey: "audioCodec"
+            label: I18n.tr("Audio Codec")
+            options: [
+                { label: "Opus", value: "opus" },
+                { label: "AAC", value: "aac" },
+                { label: "FLAC (Lossless)", value: "flac" }
+            ]
+            defaultValue: "opus"
+        }
+
+        SettingsDivider {}
+
+        ButtonGroupSettingPlus {
+            settingKey: "videoQuality"
+            label: I18n.tr("Video Quality")
+            options: [
+                { label: I18n.tr("Medium"), value: "medium" },
+                { label: I18n.tr("High"), value: "high" },
+                { label: I18n.tr("Very High"), value: "very_high" },
+                { label: I18n.tr("Ultra"), value: "ultra" }
+            ]
+            defaultValue: "very_high"
+        }
     }
 
     SettingsCard {
@@ -109,19 +136,6 @@ PluginSettings {
 
         SettingsDivider {}
 
-        ButtonGroupSettingPlus {
-            settingKey: "audioCodec"
-            label: I18n.tr("Audio Codec")
-            options: [
-                { label: "Opus", value: "opus" },
-                { label: "AAC", value: "aac" },
-                { label: "FLAC (Lossless)", value: "flac" }
-            ]
-            defaultValue: "opus"
-        }
-
-        SettingsDivider {}
-
         ToggleSettingPlus {
             settingKey: "showCursor"
             label: I18n.tr("Show Cursor")
@@ -137,20 +151,6 @@ PluginSettings {
             minimum: 15
             maximum: 144
             unit: " FPS"
-        }
-
-        SettingsDivider {}
-
-        ButtonGroupSettingPlus {
-            settingKey: "videoQuality"
-            label: I18n.tr("Video Quality")
-            options: [
-                { label: I18n.tr("Medium"), value: "medium" },
-                { label: I18n.tr("High"), value: "high" },
-                { label: I18n.tr("Very High"), value: "very_high" },
-                { label: I18n.tr("Ultra"), value: "ultra" }
-            ]
-            defaultValue: "very_high"
         }
     }
 
