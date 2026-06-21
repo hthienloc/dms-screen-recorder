@@ -200,6 +200,52 @@ PluginComponent {
         recordingDelayTimer.start();
     }
 
+    Process {
+        id: slurpProcess
+        command: ["slurp", "-f", "%wx%h+%x+%y"]
+        running: false
+        stdout: StdioCollector {
+            id: slurpStdout
+        }
+        onExited: exitCode => {
+            console.log("[ScreenRecorderDaemon] slurp finished with exitCode: " + exitCode);
+            if (exitCode === 0) {
+                var geom = slurpStdout.text ? slurpStdout.text.trim() : "";
+                console.log("[ScreenRecorderDaemon] slurp output: " + geom);
+                if (geom) {
+                    var match = geom.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
+                    if (match) {
+                        var w = parseInt(match[1]) || 0;
+                        var h = parseInt(match[2]) || 0;
+                        var x = parseInt(match[3]) || 0;
+                        var y = parseInt(match[4]) || 0;
+                        
+                        if (w % 2 !== 0) w--;
+                        if (h % 2 !== 0) h--;
+                        
+                        if (w < 2) w = 2;
+                        if (h < 2) h = 2;
+                        
+                        geom = w + "x" + h + "+" + x + "+" + y;
+                    }
+                    root.regionGeometry = geom;
+                    if (typeof ToastService !== "undefined" && ToastService) {
+                        ToastService.showInfo(I18n.tr("Screen Recorder Test"), "Selected geometry: " + geom);
+                    }
+                    // root.proceedToRecord("region", geom);
+                } else {
+                    if (typeof ToastService !== "undefined" && ToastService) {
+                        ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Invalid region geometry selected."));
+                    }
+                }
+            } else {
+                if (typeof ToastService !== "undefined" && ToastService) {
+                    ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Region selection canceled."));
+                }
+            }
+        }
+    }
+
     function startRecordingDirect(sourceType) {
         if (root.recordingState !== "idle") return;
 
@@ -219,40 +265,8 @@ PluginComponent {
         }
 
         if (activeMode === "region") {
-            console.log("[ScreenRecorderDaemon] triggering slurp...");
-            Proc.runCommand("screenRecorder.slurp", ["slurp", "-f", "%wx%h+%x+%y"], (stdout, exitCode) => {
-                console.log("[ScreenRecorderDaemon] slurp finished with exitCode: " + exitCode + ", stdout: " + stdout);
-                if (exitCode === 0 && stdout) {
-                    var geom = stdout.trim();
-                    if (geom) {
-                        var match = geom.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
-                        if (match) {
-                            var w = parseInt(match[1]) || 0;
-                            var h = parseInt(match[2]) || 0;
-                            var x = parseInt(match[3]) || 0;
-                            var y = parseInt(match[4]) || 0;
-                            
-                            if (w % 2 !== 0) w--;
-                            if (h % 2 !== 0) h--;
-                            
-                            if (w < 2) w = 2;
-                            if (h < 2) h = 2;
-                            
-                            geom = w + "x" + h + "+" + x + "+" + y;
-                        }
-                        root.regionGeometry = geom;
-                        root.proceedToRecord(activeMode, geom);
-                    } else {
-                        if (typeof ToastService !== "undefined" && ToastService) {
-                            ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Invalid region geometry selected."));
-                        }
-                    }
-                } else {
-                    if (typeof ToastService !== "undefined" && ToastService) {
-                        ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Region selection canceled."));
-                    }
-                }
-            });
+            console.log("[ScreenRecorderDaemon] triggering slurp via native process...");
+            slurpProcess.running = true;
         } else {
             root.proceedToRecord(activeMode, "");
         }
