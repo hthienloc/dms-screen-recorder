@@ -115,6 +115,24 @@ PluginSettings {
         }
 
         SettingsDivider {
+            visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "region"
+        }
+
+        DankButton {
+            width: parent.width
+            text: I18n.tr("Select Region Interactively")
+            iconName: "aspect_ratio"
+            backgroundColor: Theme.surfaceContainerHigh
+            textColor: Theme.primary
+            visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "region"
+            onClicked: {
+                if (rootSettings.daemon) {
+                    rootSettings.daemon.selectRegionInteractive();
+                }
+            }
+        }
+
+        SettingsDivider {
             visible: rootSettings.daemon && rootSettings.daemon.recordingMode === "screen"
         }
 
@@ -296,9 +314,17 @@ PluginSettings {
         StringSettingPlus {
             settingKey: "postRecordCommand"
             label: I18n.tr("Post-Recording Command")
-            description: I18n.tr("Command to run after recording finishes. Use $1 to reference the file path.")
             defaultValue: ""
             placeholder: "e.g. handbrake-cli -i $1 ..."
+        }
+
+        StyledText {
+            width: parent.width
+            text: I18n.tr("Command to run after recording finishes. Use <b>$1</b> to reference the video file path.")
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.surfaceVariantText
+            wrapMode: Text.WordWrap
+            textFormat: Text.StyledText
         }
     }
 

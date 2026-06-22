@@ -362,6 +362,15 @@ PluginComponent {
         }
     }
 
+    function selectRegionInteractive() {
+        console.log("[ScreenRecorderDaemon] triggering slurp interactive via detached process...");
+        Quickshell.execDetached([
+            "bash",
+            "-c",
+            "rm -f /tmp/dms_slurp_geom.txt; slurp -f '%wx%h+%x+%y' > /tmp/dms_slurp_geom.txt && dms ipc screenRecorderLH slurpInteractiveSuccess || dms ipc screenRecorderLH slurpInteractiveCanceled"
+        ]);
+    }
+
     function proceedToRecord(activeMode, geom) {
         // Resolve home directory
         var homeDir = Quickshell.env("HOME");
@@ -617,6 +626,58 @@ PluginComponent {
         }
 
         function slurpCanceled(): string {
+            if (typeof ToastService !== "undefined" && ToastService) {
+                ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Region selection canceled."));
+            }
+            return "CANCELED_HANDLED";
+        }
+
+        function selectRegion(): string {
+            root.selectRegionInteractive();
+            return "TRIGGERED";
+        }
+
+        function slurpInteractiveSuccess(): string {
+            Proc.runCommand("screenRecorder.readSlurpGeom", ["cat", "/tmp/dms_slurp_geom.txt"], (stdout, exitCode) => {
+                if (exitCode === 0 && stdout) {
+                    var geom = stdout.trim();
+                    console.log("[ScreenRecorderDaemon] slurp interactive success: " + geom);
+                    if (geom) {
+                        var match = geom.match(/^(\d+)x(\d+)\+(\d+)\+(\d+)/);
+                        if (match) {
+                            var w = parseInt(match[1]) || 0;
+                            var h = parseInt(match[2]) || 0;
+                            var x = parseInt(match[3]) || 0;
+                            var y = parseInt(match[4]) || 0;
+                            
+                            if (w % 2 !== 0) w--;
+                            if (h % 2 !== 0) h--;
+                            
+                            if (w < 2) w = 2;
+                            if (h < 2) h = 2;
+                            
+                            geom = w + "x" + h + "+" + x + "+" + y;
+                        }
+                        root.regionGeometry = geom;
+                        pluginService.savePluginData(pluginId, "regionGeometry", geom);
+                        if (typeof ToastService !== "undefined" && ToastService) {
+                            ToastService.showSuccess(I18n.tr("Screen Recorder"), I18n.tr("Selected region: %1").arg(geom));
+                        }
+                    } else {
+                        if (typeof ToastService !== "undefined" && ToastService) {
+                            ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Invalid region geometry selected."));
+                        }
+                    }
+                } else {
+                    if (typeof ToastService !== "undefined" && ToastService) {
+                        ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Failed to read selected region."));
+                    }
+                }
+            });
+            return "SUCCESS_HANDLED";
+        }
+
+        function slurpInteractiveCanceled(): string {
             if (typeof ToastService !== "undefined" && ToastService) {
                 ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Region selection canceled."));
             }
