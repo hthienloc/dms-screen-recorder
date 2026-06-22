@@ -339,7 +339,7 @@ PluginComponent {
 
     popoutWidth: 380
     popoutHeight: {
-        if (daemon && daemon.recordingState !== "idle") return 240;
+        if (daemon && daemon.recordingState !== "idle") return 270;
         if (minimalPopout) {
             let h = 330;
             if (daemon && daemon.recordingMode === "screen" && daemon.monitorsList.length > 2) {
@@ -396,37 +396,107 @@ PluginComponent {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
-                Row {
+                Rectangle {
                     visible: daemon ? (daemon.recordingState !== "idle") : false
                     width: parent.width
-                    spacing: Theme.spacingS
+                    height: 100
+                    radius: Theme.cornerRadius
+                    color: Theme.withAlpha(Theme.surfaceContainerHighest, 0.3)
+                    border.width: 1
+                    border.color: Theme.withAlpha(Theme.primary, 0.15)
 
-                    InfoTile {
-                        width: (parent.width - Theme.spacingS) / 2
-                        label: I18n.tr("Video Source")
-                        value: {
-                            if (!daemon) return "";
-                            let modeText = "";
-                            if (daemon.recordingMode === "region") modeText = I18n.tr("Region");
-                            else if (daemon.recordingMode === "portal") modeText = I18n.tr("Window");
-                            else modeText = I18n.tr("Fullscreen");
-                            return modeText + " (" + daemon.videoFormat.toUpperCase() + ")";
-                        }
-                        iconName: "videocam"
-                    }
+                    Grid {
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingM
+                        columns: 2
+                        columnSpacing: Theme.spacingM
+                        rowSpacing: Theme.spacingS
 
-                    InfoTile {
-                        width: (parent.width - Theme.spacingS) / 2
-                        label: I18n.tr("Audio Input")
-                        value: {
-                            if (!daemon) return "";
-                            let parts = [];
-                            if (daemon.recordAudio) parts.push(I18n.tr("System"));
-                            if (daemon.recordMic) parts.push(I18n.tr("Mic"));
-                            return parts.length > 0 ? parts.join(" + ") : I18n.tr("Muted");
+                        Column {
+                            width: (parent.width - Theme.spacingM) / 2
+                            spacing: 2
+                            Row {
+                                spacing: Theme.spacingXS
+                                DankIcon { name: "videocam"; size: 14; color: Theme.primary; opacity: 0.8 }
+                                StyledText { text: I18n.tr("Video Source"); color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall - 1 }
+                            }
+                            StyledText {
+                                text: {
+                                    if (!daemon) return "";
+                                    let modeText = "";
+                                    if (daemon.recordingMode === "region") modeText = I18n.tr("Region");
+                                    else if (daemon.recordingMode === "portal") modeText = I18n.tr("Window");
+                                    else modeText = I18n.tr("Fullscreen");
+                                    return modeText + " (" + daemon.videoFormat.toUpperCase() + ")";
+                                }
+                                color: Theme.surfaceText
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                            }
                         }
-                        iconName: daemon && (daemon.recordAudio || daemon.recordMic) ? "volume_up" : "volume_off"
-                        accentColor: daemon && (daemon.recordAudio || daemon.recordMic) ? Theme.primary : Theme.surfaceVariantText
+
+                        Column {
+                            width: (parent.width - Theme.spacingM) / 2
+                            spacing: 2
+                            Row {
+                                spacing: Theme.spacingXS
+                                DankIcon {
+                                    name: daemon && daemon.recordAudio ? "volume_up" : "volume_off"
+                                    size: 14
+                                    color: daemon && daemon.recordAudio ? Theme.primary : Theme.surfaceVariantText
+                                    opacity: 0.8
+                                }
+                                StyledText { text: I18n.tr("System Audio"); color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall - 1 }
+                            }
+                            StyledText {
+                                text: daemon && daemon.recordAudio ? I18n.tr("Recorded") : I18n.tr("Muted")
+                                color: Theme.surfaceText
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Column {
+                            width: (parent.width - Theme.spacingM) / 2
+                            spacing: 2
+                            Row {
+                                spacing: Theme.spacingXS
+                                DankIcon {
+                                    name: daemon && daemon.showCursor ? "mouse" : "block"
+                                    size: 14
+                                    color: daemon && daemon.showCursor ? Theme.primary : Theme.surfaceVariantText
+                                    opacity: 0.8
+                                }
+                                StyledText { text: I18n.tr("Show Cursor"); color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall - 1 }
+                            }
+                            StyledText {
+                                text: daemon && daemon.showCursor ? I18n.tr("Yes") : I18n.tr("No")
+                                color: Theme.surfaceText
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Column {
+                            width: (parent.width - Theme.spacingM) / 2
+                            spacing: 2
+                            Row {
+                                spacing: Theme.spacingXS
+                                DankIcon {
+                                    name: daemon && daemon.recordMic ? "mic" : "mic_off"
+                                    size: 14
+                                    color: daemon && daemon.recordMic ? Theme.primary : Theme.surfaceVariantText
+                                    opacity: 0.8
+                                }
+                                StyledText { text: I18n.tr("Microphone"); color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall - 1 }
+                            }
+                            StyledText {
+                                text: daemon && daemon.recordMic ? I18n.tr("Recorded") : I18n.tr("Muted")
+                                color: Theme.surfaceText
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                            }
+                        }
                     }
                 }
 
@@ -900,8 +970,8 @@ PluginComponent {
                             visible: daemon ? (daemon.recordingState === "recording" || daemon.recordingState === "paused") : false
                             text: daemon && daemon.isPaused ? I18n.tr("Resume") : I18n.tr("Pause")
                             iconName: daemon && daemon.isPaused ? "play_arrow" : "pause"
-                            backgroundColor: Theme.surfaceContainerHigh
-                            textColor: Theme.surfaceText
+                            backgroundColor: Theme.primary
+                            textColor: Theme.onPrimary
                             buttonHeight: 40
                             onClicked: {
                                 if (daemon) daemon.pauseRecording();
@@ -920,23 +990,6 @@ PluginComponent {
                                 popoutComp.closePopout();
                             }
                         }
-                    }
-
-                    Row {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: Theme.spacingM
-
-                        DankButton {
-                            visible: daemon ? (daemon.recordingState === "paused" && daemon.outputPath !== "") : false
-                            text: I18n.tr("Preview")
-                            iconName: "play_circle"
-                            backgroundColor: Theme.surfaceContainerHigh
-                            textColor: Theme.primary
-                            buttonHeight: 40
-                            onClicked: {
-                                Quickshell.execDetached(["xdg-open", daemon.outputPath]);
-                            }
-                        }
 
                         DankButton {
                             visible: daemon ? (daemon.recordingState === "starting" || daemon.recordingState === "recording" || daemon.recordingState === "paused") : false
@@ -948,6 +1001,23 @@ PluginComponent {
                             onClicked: {
                                 if (daemon) daemon.cancelRecording();
                                 popoutComp.closePopout();
+                            }
+                        }
+                    }
+
+                    Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: Theme.spacingM
+                        visible: daemon ? (daemon.recordingState === "paused" && daemon.outputPath !== "") : false
+
+                        DankButton {
+                            text: I18n.tr("Preview")
+                            iconName: "play_circle"
+                            backgroundColor: Theme.surfaceContainerHigh
+                            textColor: Theme.primary
+                            buttonHeight: 40
+                            onClicked: {
+                                Quickshell.execDetached(["xdg-open", daemon.outputPath]);
                             }
                         }
                     }
