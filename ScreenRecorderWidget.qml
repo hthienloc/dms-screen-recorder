@@ -206,11 +206,12 @@ PluginComponent {
 
     verticalBarPill: Component {
         Item {
-            implicitWidth: Theme.iconSize
-            implicitHeight: daemon && daemon.isRecording ? 60 : Theme.iconSizeSmall + Theme.spacingM * 2
+            implicitWidth: Math.max(Theme.iconSizeSmall, vColumn.implicitWidth)
+            implicitHeight: vColumn.implicitHeight
             anchors.horizontalCenter: parent.horizontalCenter
 
             Column {
+                id: vColumn
                 anchors.centerIn: parent
                 spacing: Theme.spacingXS
 
@@ -240,12 +241,80 @@ PluginComponent {
                     }
                 }
 
+                // Stop button
+                Rectangle {
+                    visible: daemon ? daemon.isRecording : false
+                    width: daemon && daemon.isRecording ? 24 : 0
+                    height: 24
+                    radius: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: vStopMouseArea.containsMouse ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.2) : Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.1)
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 90
+                            easing.type: Theme.standardEasing
+                        }
+                    }
+
+                    DankIcon {
+                        name: "stop"
+                        size: 14
+                        color: Theme.error
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        id: vStopMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (daemon) daemon.stopRecording();
+                        }
+                    }
+                }
+
+                // Pause button
+                Rectangle {
+                    visible: daemon ? daemon.isRecording : false
+                    width: daemon && daemon.isRecording ? 24 : 0
+                    height: 24
+                    radius: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: vPauseMouseArea.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.2) : Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.1)
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 90
+                            easing.type: Theme.standardEasing
+                        }
+                    }
+
+                    DankIcon {
+                        name: daemon && daemon.isPaused ? "play_arrow" : "pause"
+                        size: 14
+                        color: Theme.primary
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        id: vPauseMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (daemon) daemon.pauseRecording();
+                        }
+                    }
+                }
+
                 StyledText {
                     visible: daemon ? daemon.isRecording : false
-                    text: daemon ? daemon.formatDuration(daemon.recordingSeconds) : "00:00"
+                    text: daemon ? daemon.formatDuration(daemon.recordingSeconds).split(':').join('\n') : "00\n00"
                     color: Theme.surfaceText
                     font.pixelSize: Theme.fontSizeSmall
-                    font.family: "monospace"
+                    horizontalAlignment: Text.AlignHCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
@@ -254,19 +323,14 @@ PluginComponent {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 cursorShape: Qt.PointingHandCursor
+                visible: daemon ? !daemon.isRecording : true
                 onClicked: (mouse) => {
-                    if (daemon && daemon.isRecording) {
-                        if (mouse.button === Qt.LeftButton) {
-                            daemon.stopRecording();
-                        }
-                    } else {
-                        if (mouse.button === Qt.LeftButton) {
-                            root.triggerPopout();
-                        } else if (mouse.button === Qt.RightButton) {
-                            if (daemon) daemon.startRecording("region");
-                        } else if (mouse.button === Qt.MiddleButton) {
-                            if (daemon) daemon.startRecording("screen");
-                        }
+                    if (mouse.button === Qt.LeftButton) {
+                        root.triggerPopout();
+                    } else if (mouse.button === Qt.RightButton) {
+                        if (daemon) daemon.startRecording("region");
+                    } else if (mouse.button === Qt.MiddleButton) {
+                        if (daemon) daemon.startRecording("screen");
                     }
                 }
             }
