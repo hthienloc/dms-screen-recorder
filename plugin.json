@@ -1,6 +1,6 @@
 {
   "id": "screenRecorderLH",
-  "name": "Screen Recorder",
+  "name": "Screen Recorder LH",
   "description": "Wayland screen recorder using gpu-screen-recorder.",
   "version": "1.0.0",
   "author": "Loc Huynh",
