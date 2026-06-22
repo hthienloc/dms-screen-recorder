@@ -626,9 +626,6 @@ PluginComponent {
         }
 
         function slurpCanceled(): string {
-            if (typeof ToastService !== "undefined" && ToastService) {
-                ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Region selection canceled."));
-            }
             return "CANCELED_HANDLED";
         }
 
@@ -678,9 +675,6 @@ PluginComponent {
         }
 
         function slurpInteractiveCanceled(): string {
-            if (typeof ToastService !== "undefined" && ToastService) {
-                ToastService.showWarning(I18n.tr("Screen Recorder"), I18n.tr("Region selection canceled."));
-            }
             return "CANCELED_HANDLED";
         }
 
