@@ -35,6 +35,7 @@ PluginComponent {
 
     property bool micTesting: false
     property bool _micRecording: false
+    property string _micTestFile: ""
 
     property int micGainValue: daemon ? Math.round(daemon.micBoost * 10) : 20
 
@@ -44,9 +45,9 @@ PluginComponent {
         root._micRecording = true;
 
         var micDev = daemon.micDevice || "default_input";
-        var testFile = "/tmp/dms_mic_test.wav";
+        root._micTestFile = "/tmp/dms_mic_test_" + Date.now() + "_" + Math.floor(Math.random() * 1e9) + ".wav";
 
-        micTestRecord.command = ["pw-record", "--target=" + micDev, "--rate=44100", "--channels=1", testFile];
+        micTestRecord.command = ["pw-record", "--target=" + micDev, "--rate=44100", "--channels=1", root._micTestFile];
         micTestRecord.running = true;
     }
 
@@ -61,12 +62,10 @@ PluginComponent {
         running: false
         onExited: exitCode => {
             if (root._micRecording) {
-                // recording process crashed unexpectedly
                 root._micRecording = false;
                 root.micTesting = false;
             } else {
-                // stopped intentionally, play back
-                micTestPlay.command = ["pw-play", "/tmp/dms_mic_test.wav"];
+                micTestPlay.command = ["pw-play", root._micTestFile];
                 micTestPlay.running = true;
             }
         }
@@ -76,6 +75,8 @@ PluginComponent {
         id: micTestPlay
         running: false
         onExited: exitCode => {
+            Proc.runCommand("screenRecorderLH.cleanupMicTest", ["rm", "-f", root._micTestFile]);
+            root._micTestFile = "";
             root.micTesting = false;
         }
     }

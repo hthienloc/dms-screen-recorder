@@ -214,6 +214,31 @@ PluginComponent {
         }
     }
 
+    function _applyMicBoost(videoPath) {
+        root.isProcessing = true;
+        var ext = root.videoFormat;
+        var tempOut = videoPath + ".boosted." + ext;
+        var boost = root.micBoost;
+
+        var ffmpegArgs = ["ffmpeg", "-y", "-i", videoPath,
+            "-filter:a", "volume=" + boost,
+            "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", tempOut];
+
+        console.log("[ScreenRecorderDaemon] Applying mic boost: " + ffmpegArgs.join(" "));
+
+        Proc.runCommand("screenRecorderLH.applyMicBoost", ffmpegArgs, (stdout, exitCode) => {
+            if (exitCode === 0) {
+                Proc.runCommand("screenRecorderLH.replaceBoosted", ["mv", "-f", tempOut, videoPath], () => {
+                    root.performPostProcessing(videoPath);
+                });
+            } else {
+                console.log("[ScreenRecorderDaemon] Mic boost failed, using original");
+                Proc.runCommand("screenRecorderLH.cleanupTemp", ["rm", "-f", tempOut]);
+                root.performPostProcessing(videoPath);
+            }
+        });
+    }
+
     function _mergeAudio(videoPath) {
         root.isProcessing = true;
         var ext = root.videoFormat;
@@ -243,6 +268,11 @@ PluginComponent {
     function performPostProcessing(videoPath) {
         if (root._recordedAudioCount > 1) {
             root._mergeAudio(videoPath);
+            return;
+        }
+
+        if (root._recordedAudioCount === 1 && root.recordMic && root.micBoost !== 1.0) {
+            root._applyMicBoost(videoPath);
             return;
         }
 
