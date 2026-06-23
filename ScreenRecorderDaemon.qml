@@ -55,10 +55,18 @@ PluginComponent {
     property bool recordMic: pluginData.recordMic ?? false
     property string micDevice: pluginData.micDevice ?? "default_input"
     property string systemAudioDevice: pluginData.systemAudioDevice ?? "default_output"
+    property real micBoost: {
+        var val = pluginData.micBoost;
+        if (val === undefined || val === null) return 2.0;
+        var num = parseFloat(val);
+        if (isNaN(num)) return 2.0;
+        return num / 10;
+    }
     property var audioInputsList: [{"label": I18n.tr("Default Microphone"), "value": "default_input"}]
     property var audioOutputsList: [{"label": I18n.tr("Default Output"), "value": "default_output"}]
 
     property string activeRecordingMode: ""
+    property int _recordedAudioCount: 0
     property int regionX: 0
     property int regionY: 0
     property int regionW: 0
@@ -206,7 +214,68 @@ PluginComponent {
         }
     }
 
+    function _applyMicBoost(videoPath) {
+        root.isProcessing = true;
+        var ext = root.videoFormat;
+        var tempOut = videoPath + ".boosted." + ext;
+        var boost = root.micBoost;
+
+        var ffmpegArgs = ["ffmpeg", "-y", "-i", videoPath,
+            "-filter:a", "volume=" + boost,
+            "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", tempOut];
+
+        console.log("[ScreenRecorderDaemon] Applying mic boost: " + ffmpegArgs.join(" "));
+
+        Proc.runCommand("screenRecorderLH.applyMicBoost", ffmpegArgs, (stdout, exitCode) => {
+            if (exitCode === 0) {
+                Proc.runCommand("screenRecorderLH.replaceBoosted", ["mv", "-f", tempOut, videoPath], () => {
+                    root.performPostProcessing(videoPath);
+                });
+            } else {
+                console.log("[ScreenRecorderDaemon] Mic boost failed, using original");
+                Proc.runCommand("screenRecorderLH.cleanupTemp", ["rm", "-f", tempOut]);
+                root.performPostProcessing(videoPath);
+            }
+        });
+    }
+
+    function _mergeAudio(videoPath) {
+        root.isProcessing = true;
+        var ext = root.videoFormat;
+        var tempOut = videoPath + ".audio_merged." + ext;
+
+        var boost = root.micBoost;
+        var ffmpegArgs = ["ffmpeg", "-y", "-i", videoPath,
+            "-filter_complex", "[0:a:0]anull[a0];[0:a:1]volume=" + boost + "[a1];[a0][a1]amix=inputs=2:duration=first:normalize=0[a]",
+            "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", tempOut];
+
+        console.log("[ScreenRecorderDaemon] Merging audio tracks: " + ffmpegArgs.join(" "));
+
+        Proc.runCommand("screenRecorderLH.mergeAudio", ffmpegArgs, (stdout, exitCode) => {
+            if (exitCode === 0) {
+                Proc.runCommand("screenRecorderLH.replaceMerged", ["mv", "-f", tempOut, videoPath], () => {
+                    root._recordedAudioCount = 1;
+                    root.performPostProcessing(videoPath);
+                });
+            } else {
+                console.log("[ScreenRecorderDaemon] Audio merge failed, using original");
+                Proc.runCommand("screenRecorderLH.cleanupTemp", ["rm", "-f", tempOut]);
+                root.performPostProcessing(videoPath);
+            }
+        });
+    }
+
     function performPostProcessing(videoPath) {
+        if (root._recordedAudioCount > 1) {
+            root._mergeAudio(videoPath);
+            return;
+        }
+
+        if (root._recordedAudioCount === 1 && root.recordMic && root.micBoost !== 1.0) {
+            root._applyMicBoost(videoPath);
+            return;
+        }
+
         var needsCompression = (root.compressVideo !== "disabled");
         var needsScaling = (root.targetResolution !== "original");
         
@@ -406,13 +475,16 @@ PluginComponent {
             args.push("-f", root.framerate.toString(), "-o", root.outputPath);
             args.push("-cursor", root.showCursor ? "yes" : "no");
             var hasAudio = false;
+            root._recordedAudioCount = 0;
             if (root.recordAudio) {
                 args.push("-a", root.systemAudioDevice || "default_output");
                 hasAudio = true;
+                root._recordedAudioCount++;
             }
             if (root.recordMic) {
                 args.push("-a", root.micDevice || "default_input");
                 hasAudio = true;
+                root._recordedAudioCount++;
             }
             if (hasAudio) {
                 args.push("-ac", root.audioCodec);
