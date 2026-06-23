@@ -178,6 +178,19 @@ PluginSettings {
             visible: rootSettings.daemon && rootSettings.daemon.recordMic
         }
 
+        SliderSettingPlus {
+            settingKey: "micBoost"
+            label: I18n.tr("Microphone Gain")
+            description: I18n.tr("Boost microphone volume (1x = no boost, 2x = double)")
+            defaultValue: 20
+            minimum: 10
+            maximum: 50
+            unit: "x"
+            leftLabel: "1x"
+            rightLabel: "5x"
+            visible: rootSettings.daemon && rootSettings.daemon.recordMic
+        }
+
         SettingsDivider {}
 
         ToggleSettingPlus {

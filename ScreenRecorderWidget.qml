@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Io
 import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
@@ -21,6 +22,63 @@ PluginComponent {
     readonly property bool showPillBorder: pluginData.showPillBorder ?? false
     readonly property bool minimalPopout: pluginData.minimalPopout ?? true
     readonly property int recordingIconSize: showPillBorder ? 12 : Theme.iconSizeSmall
+
+    readonly property string currentMicLabel: {
+        if (!daemon) return "";
+        const list = daemon.audioInputsList;
+        const val = daemon.micDevice;
+        for (let i = 0; i < list.length; i++) {
+            if (list[i].value === val) return list[i].label;
+        }
+        return val;
+    }
+
+    property bool micTesting: false
+    property bool _micRecording: false
+
+    property int micGainValue: daemon ? Math.round(daemon.micBoost * 10) : 20
+
+    function startMicTest() {
+        if (root.micTesting || !daemon) return;
+        root.micTesting = true;
+        root._micRecording = true;
+
+        var micDev = daemon.micDevice || "default_input";
+        var testFile = "/tmp/dms_mic_test.wav";
+
+        micTestRecord.command = ["pw-record", "--target=" + micDev, "--rate=44100", "--channels=1", testFile];
+        micTestRecord.running = true;
+    }
+
+    function stopMicTest() {
+        if (!root._micRecording) return;
+        root._micRecording = false;
+        micTestRecord.running = false;
+    }
+
+    Process {
+        id: micTestRecord
+        running: false
+        onExited: exitCode => {
+            if (root._micRecording) {
+                // recording process crashed unexpectedly
+                root._micRecording = false;
+                root.micTesting = false;
+            } else {
+                // stopped intentionally, play back
+                micTestPlay.command = ["pw-play", "/tmp/dms_mic_test.wav"];
+                micTestPlay.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: micTestPlay
+        running: false
+        onExited: exitCode => {
+            root.micTesting = false;
+        }
+    }
 
     // Blinking Timer for recording dot
     Timer {
@@ -96,13 +154,22 @@ PluginComponent {
                         color: hIconWrapper.spinning ? Theme.primary : (daemon && daemon.isRecording ? Theme.error : Theme.surfaceText)
                         opacity: (!hIconWrapper.spinning && daemon && daemon.isRecording) ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
 
-                        RotationAnimation on rotation {
+                        NumberAnimation on rotation {
                             id: hSpinAnim
-                            running: hIconWrapper.spinning
                             from: 0; to: 360
                             duration: 1000
                             loops: Animation.Infinite
-                            onRunningChanged: if (!running) rotation = 0
+                            running: hIconWrapper.spinning
+                        }
+
+                        Behavior on rotation {
+                            enabled: !hIconWrapper.spinning
+                            NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+                        }
+
+                        onRotationChanged: {
+                            if (!hIconWrapper.spinning && rotation !== 0)
+                                rotation = 0
                         }
                     }
                 }
@@ -230,13 +297,22 @@ PluginComponent {
                         color: vIconWrapper.spinning ? Theme.primary : (daemon && daemon.isRecording ? Theme.error : Theme.surfaceText)
                         opacity: (!vIconWrapper.spinning && daemon && daemon.isRecording) ? (blinkRecordDot ? (blinkTimer.blinkOn ? 1.0 : 0.3) : 1.0) : 1.0
 
-                        RotationAnimation on rotation {
+                        NumberAnimation on rotation {
                             id: vSpinAnim
-                            running: vIconWrapper.spinning
                             from: 0; to: 360
                             duration: 1000
                             loops: Animation.Infinite
-                            onRunningChanged: if (!running) rotation = 0
+                            running: vIconWrapper.spinning
+                        }
+
+                        Behavior on rotation {
+                            enabled: !vIconWrapper.spinning
+                            NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+                        }
+
+                        onRotationChanged: {
+                            if (!vIconWrapper.spinning && rotation !== 0)
+                                rotation = 0
                         }
                     }
                 }
@@ -511,18 +587,174 @@ PluginComponent {
                         text: I18n.tr("Record System Audio")
                         checked: daemon ? daemon.recordAudio : false
                         onToggled: {
-                            if (daemon) daemon.recordAudio = checked;
+                            if (daemon) {
+                                daemon.recordAudio = checked;
+                                pluginService.savePluginData(pluginId, "recordAudio", checked);
+                            }
                         }
                     }
 
                     SettingsDivider {}
 
-                    DankToggle {
+                    Column {
                         width: parent.width
-                        text: I18n.tr("Record Microphone")
-                        checked: daemon ? daemon.recordMic : false
-                        onToggled: {
-                            if (daemon) daemon.recordMic = checked;
+                        spacing: Theme.spacingXS
+
+                        DankToggle {
+                            width: parent.width
+                            text: I18n.tr("Record Microphone")
+                            checked: daemon ? daemon.recordMic : false
+                            onToggled: {
+                                if (daemon) {
+                                    daemon.recordMic = checked;
+                                    pluginService.savePluginData(pluginId, "recordMic", checked);
+                                }
+                            }
+                        }
+
+                        DankDropdown {
+                            width: parent.width
+                            compactMode: true
+                            visible: daemon ? daemon.recordMic : false
+                            currentValue: root.currentMicLabel
+                            options: daemon ? daemon.audioInputsList.map(function(item) { return item.label; }) : []
+                            onValueChanged: {
+                                if (!daemon) return;
+                                for (let i = 0; i < daemon.audioInputsList.length; i++) {
+                                    if (daemon.audioInputsList[i].label === value) {
+                                        daemon.micDevice = daemon.audioInputsList[i].value;
+                                        pluginService.savePluginData(pluginId, "micDevice", daemon.audioInputsList[i].value);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        Item {
+                            width: parent.width
+                            height: daemon && daemon.recordMic ? testContent.implicitHeight : 0
+                            clip: true
+                            visible: daemon && daemon.recordMic
+
+                            Column {
+                                id: testContent
+                                width: parent.width
+                                spacing: Theme.spacingS
+                                topPadding: Theme.spacingS
+
+                                Row {
+                                    width: parent.width
+                                    spacing: Theme.spacingS
+
+                                    DankIcon {
+                                        name: AudioService.source && AudioService.source.audio && AudioService.source.audio.muted ? "mic_off" : "mic"
+                                        size: 20
+                                        color: AudioService.source && AudioService.source.audio && !AudioService.source.audio.muted ? Theme.primary : Theme.surfaceVariantText
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+
+                                    Column {
+                                        width: parent.width - 28
+                                        spacing: 1
+                                        StyledText {
+                                            text: root.currentMicLabel || I18n.tr("Microphone")
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            color: Theme.surfaceText
+                                            elide: Text.ElideRight
+                                            width: parent.width
+                                        }
+                                        StyledText {
+                                            text: AudioService.source && AudioService.source.audio && AudioService.source.audio.muted
+                                                  ? I18n.tr("Muted in system")
+                                                  : I18n.tr("Volume: %1%").arg(Math.round((AudioService.source?.audio?.volume ?? 0) * 100))
+                                            font.pixelSize: Theme.fontSizeSmall - 1
+                                            color: Theme.surfaceVariantText
+                                        }
+                                    }
+                                }
+
+                                Item {
+                                    width: parent.width
+                                    height: 28
+
+                                    StyledText {
+                                        id: micGainLabel
+                                        text: I18n.tr("Mic Gain")
+                                        font.pixelSize: Theme.fontSizeSmall
+                                        color: Theme.surfaceText
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.left: parent.left
+                                    }
+
+                                    StyledText {
+                                        id: micGainValueText
+                                        text: (root.micGainValue / 10).toFixed(1) + "x"
+                                        font.pixelSize: Theme.fontSizeSmall
+                                        font.weight: Font.DemiBold
+                                        color: Theme.primary
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.right: parent.right
+                                    }
+
+                                    DankSliderPlus {
+                                        id: micGainSlider
+                                        anchors.left: micGainLabel.right
+                                        anchors.leftMargin: Theme.spacingS
+                                        anchors.right: micGainValueText.left
+                                        anchors.rightMargin: Theme.spacingS
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        height: 24
+                                        value: root.micGainValue
+                                        minimum: 10
+                                        maximum: 50
+                                        unit: ""
+                                        showValue: false
+                                        wheelEnabled: false
+                                        thumbOutlineColor: Theme.withAlpha(Theme.surfaceContainerHighest, Theme.popupTransparency)
+                                        onSliderValueChanged: {
+                                            if (daemon) {
+                                                var gain = Math.round(newValue);
+                                                daemon.micBoost = gain / 10;
+                                                pluginService.savePluginData(pluginId, "micBoost", gain);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: parent.width
+                                    height: 36
+                                    radius: Theme.cornerRadius
+                                    color: root._micRecording ? Theme.primary : (testMicArea.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainer)
+
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+
+                                    Row {
+                                        anchors.centerIn: parent
+                                        spacing: Theme.spacingXS
+                                        DankIcon {
+                                            name: root._micRecording ? "mic" : "mic"
+                                            size: 16
+                                            color: root._micRecording ? Theme.onPrimary : Theme.primary
+                                        }
+                                        StyledText {
+                                            text: root._micRecording ? I18n.tr("Recording... release to hear") : I18n.tr("Hold to test microphone")
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            color: root._micRecording ? Theme.onPrimary : Theme.primary
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        id: testMicArea
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onPressed: root.startMicTest()
+                                        onReleased: root.stopMicTest()
+                                        onCanceled: root.stopMicTest()
+                                    }
+                                }
+                            }
                         }
                     }
 
