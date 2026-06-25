@@ -376,6 +376,15 @@ PluginSettings {
             label: I18n.tr("Minimal Popout Menu")
             defaultValue: true
         }
+
+        SettingsDivider {}
+
+        ToggleSettingPlus {
+            settingKey: "hideWidgetsDuringRecording"
+            label: I18n.tr("Hide Desktop Widgets")
+            description: I18n.tr("Temporarily hide all desktop widgets while recording.")
+            defaultValue: false
+        }
     }
 
     SettingsCard {
