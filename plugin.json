@@ -2,7 +2,7 @@
   "id": "screenRecorderLH",
   "name": "Screen Recorder LH",
   "description": "Wayland screen recorder using gpu-screen-recorder.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Loc Huynh",
   "icon": "videocam",
   "type": "composite",
