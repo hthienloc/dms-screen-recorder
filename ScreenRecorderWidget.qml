@@ -791,6 +791,8 @@ PluginComponent {
                         }
                     }
 
+                    SettingsDivider {}
+
                     DankToggle {
                         width: parent.width
                         text: I18n.tr("Hide Desktop Widgets")
