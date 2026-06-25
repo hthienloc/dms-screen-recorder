@@ -382,12 +382,16 @@ PluginComponent {
         if (typeof SettingsData === "undefined" || !SettingsData.desktopWidgetInstances) return;
         root._savedWidgetStates = {};
         var instances = SettingsData.desktopWidgetInstances;
-        for (var i = 0; i < instances.length; i++) {
-            var inst = instances[i];
-            if (inst && inst.id) {
-                root._savedWidgetStates[inst.id] = inst.enabled !== false;
-                SettingsData.updateDesktopWidgetInstance(inst.id, { enabled: false });
+        try {
+            for (var i = 0; i < instances.length; i++) {
+                var inst = instances[i];
+                if (inst && inst.id && inst.enabled !== false) {
+                    root._savedWidgetStates[inst.id] = true;
+                    SettingsData.updateDesktopWidgetInstance(inst.id, { enabled: false });
+                }
             }
+        } catch (e) {
+            console.warn("[ScreenRecorderDaemon] Failed to hide desktop widgets: " + e.message);
         }
     }
 
@@ -396,8 +400,12 @@ PluginComponent {
         var saved = root._savedWidgetStates;
         if (!saved || Object.keys(saved).length === 0) return;
         var ids = Object.keys(saved);
-        for (var i = 0; i < ids.length; i++) {
-            SettingsData.updateDesktopWidgetInstance(ids[i], { enabled: saved[ids[i]] });
+        try {
+            for (var i = 0; i < ids.length; i++) {
+                SettingsData.updateDesktopWidgetInstance(ids[i], { enabled: true });
+            }
+        } catch (e) {
+            console.warn("[ScreenRecorderDaemon] Failed to restore desktop widgets: " + e.message);
         }
         root._savedWidgetStates = {};
     }

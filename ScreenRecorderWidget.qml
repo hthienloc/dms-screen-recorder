@@ -476,7 +476,7 @@ PluginComponent {
                 Rectangle {
                     visible: daemon ? (daemon.recordingState !== "idle") : false
                     width: parent.width
-                    height: 130
+                    height: 140
                     radius: Theme.cornerRadius
                     color: Theme.withAlpha(Theme.surfaceContainerHighest, 0.3)
                     border.width: 1
@@ -797,8 +797,11 @@ PluginComponent {
                         checked: daemon ? daemon.hideWidgets : false
                         onToggled: {
                             if (daemon) {
-                                daemon.hideWidgets = checked;
                                 pluginService.savePluginData(pluginId, "hideWidgetsDuringRecording", checked);
+                                if (daemon.isRecording) {
+                                    if (checked) daemon.hideDesktopWidgets();
+                                    else daemon.restoreDesktopWidgets();
+                                }
                             }
                         }
                     }
