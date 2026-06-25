@@ -324,6 +324,15 @@ PluginSettings {
 
         SettingsDivider {}
 
+        ToggleSettingPlus {
+            settingKey: "copyPathToClipboard"
+            label: I18n.tr("Copy Path to Clipboard")
+            description: I18n.tr("Automatically copy the recording file path to the clipboard when finished.")
+            defaultValue: false
+        }
+
+        SettingsDivider {}
+
         StringSettingPlus {
             settingKey: "postRecordCommand"
             label: I18n.tr("Post-Recording Command")
