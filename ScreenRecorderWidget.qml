@@ -476,7 +476,7 @@ PluginComponent {
                 Rectangle {
                     visible: daemon ? (daemon.recordingState !== "idle") : false
                     width: parent.width
-                    height: 100
+                    height: 140
                     radius: Theme.cornerRadius
                     color: Theme.withAlpha(Theme.surfaceContainerHighest, 0.3)
                     border.width: 1
@@ -569,6 +569,27 @@ PluginComponent {
                             }
                             StyledText {
                                 text: daemon && daemon.recordMic ? I18n.tr("Recorded") : I18n.tr("Muted")
+                                color: Theme.surfaceText
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        Column {
+                            width: (parent.width - Theme.spacingM) / 2
+                            spacing: 2
+                            Row {
+                                spacing: Theme.spacingXS
+                                DankIcon {
+                                    name: daemon && daemon.hideWidgets ? "visibility_off" : "visibility"
+                                    size: 14
+                                    color: daemon && daemon.hideWidgets ? Theme.primary : Theme.surfaceVariantText
+                                    opacity: 0.8
+                                }
+                                StyledText { text: I18n.tr("Desktop Widgets"); color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall - 1 }
+                            }
+                            StyledText {
+                                text: daemon && daemon.hideWidgets ? I18n.tr("Hidden") : I18n.tr("Visible")
                                 color: Theme.surfaceText
                                 font.pixelSize: Theme.fontSizeSmall
                                 font.weight: Font.DemiBold
@@ -767,6 +788,21 @@ PluginComponent {
                         checked: daemon ? daemon.showCursor : true
                         onToggled: {
                             if (daemon) daemon.showCursor = checked;
+                        }
+                    }
+
+                    DankToggle {
+                        width: parent.width
+                        text: I18n.tr("Hide Desktop Widgets")
+                        checked: daemon ? daemon.hideWidgets : false
+                        onToggled: {
+                            if (daemon) {
+                                pluginService.savePluginData(pluginId, "hideWidgetsDuringRecording", checked);
+                                if (daemon.isRecording) {
+                                    if (checked) daemon.hideDesktopWidgets();
+                                    else daemon.restoreDesktopWidgets();
+                                }
+                            }
                         }
                     }
 

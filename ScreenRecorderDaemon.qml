@@ -65,6 +65,9 @@ PluginComponent {
     property var audioInputsList: [{"label": I18n.tr("Default Microphone"), "value": "default_input"}]
     property var audioOutputsList: [{"label": I18n.tr("Default Output"), "value": "default_output"}]
 
+    property bool hideWidgets: pluginData.hideWidgetsDuringRecording ?? false
+    property var _savedWidgetStates: ({})
+
     property string activeRecordingMode: ""
     property int _recordedAudioCount: 0
     property int regionX: 0
@@ -101,6 +104,7 @@ PluginComponent {
         onTriggered: {
             if (root.recordingState === "starting" || (root.isRecording && !recorderProcess.running)) {
                 fileCheckTimer.stop();
+                root.restoreDesktopWidgets();
                 root.recordingState = "idle";
                 root.isRecording = false;
                 root.isPaused = false;
@@ -147,6 +151,7 @@ PluginComponent {
 
             safetyTimer.stop();
             fileCheckTimer.stop();
+            root.restoreDesktopWidgets();
             root.recordingState = "idle";
             root.isRecording = false;
             root.isPaused = false;
@@ -372,6 +377,39 @@ PluginComponent {
         return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
     }
 
+    function hideDesktopWidgets() {
+        if (!root.hideWidgets) return;
+        if (typeof SettingsData === "undefined" || !SettingsData.desktopWidgetInstances) return;
+        root._savedWidgetStates = {};
+        var instances = SettingsData.desktopWidgetInstances;
+        try {
+            for (var i = 0; i < instances.length; i++) {
+                var inst = instances[i];
+                if (inst && inst.id && inst.enabled !== false) {
+                    root._savedWidgetStates[inst.id] = true;
+                    SettingsData.updateDesktopWidgetInstance(inst.id, { enabled: false });
+                }
+            }
+        } catch (e) {
+            console.warn("[ScreenRecorderDaemon] Failed to hide desktop widgets: " + e.message);
+        }
+    }
+
+    function restoreDesktopWidgets() {
+        if (typeof SettingsData === "undefined" || !SettingsData.desktopWidgetInstances) return;
+        var saved = root._savedWidgetStates;
+        if (!saved || Object.keys(saved).length === 0) return;
+        var ids = Object.keys(saved);
+        try {
+            for (var i = 0; i < ids.length; i++) {
+                SettingsData.updateDesktopWidgetInstance(ids[i], { enabled: true });
+            }
+        } catch (e) {
+            console.warn("[ScreenRecorderDaemon] Failed to restore desktop widgets: " + e.message);
+        }
+        root._savedWidgetStates = {};
+    }
+
     function getTimestampString() {
         var now = new Date();
         var yyyy = now.getFullYear();
@@ -520,7 +558,8 @@ PluginComponent {
             
             root.recordingState = "starting";
             root.activeRecordingMode = activeMode;
-            
+            root.hideDesktopWidgets();
+
             safetyTimer.interval = (activeMode === "portal" || activeMode === "window") ? 120000 : 15000;
             safetyTimer.restart();
         });
@@ -549,6 +588,7 @@ PluginComponent {
         root.isCancelling = true;
         safetyTimer.stop();
         fileCheckTimer.stop();
+        root.restoreDesktopWidgets();
         root.recordingState = "idle";
         root.isRecording = false;
         root.isPaused = false;
@@ -880,6 +920,10 @@ PluginComponent {
             regionX = parseInt(match[3]) || 0;
             regionY = parseInt(match[4]) || 0;
         }
+    }
+
+    Component.onDestruction: {
+        root.restoreDesktopWidgets();
     }
 
     Variants {
