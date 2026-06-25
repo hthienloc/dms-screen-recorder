@@ -48,6 +48,7 @@ PluginComponent {
     }
     property string postNotification: pluginData.postNotification ?? "notification"
     property bool openVideoOnFinish: pluginData.openVideoOnFinish ?? false
+    property bool copyPathToClipboard: pluginData.copyPathToClipboard ?? false
     property string targetMonitor: pluginData.targetMonitor ?? "all"
     property string recordingMode: pluginData.recordingMode ?? "screen"
     property string regionGeometry: pluginData.regionGeometry ?? "1028x768+100+100"
@@ -357,6 +358,11 @@ PluginComponent {
             const cmdStr = root.postRecordCommand.replace(/\$1/g, safePath);
             console.log("[ScreenRecorderDaemon] Executing post-record command: " + cmdStr);
             Proc.runCommand("screenRecorderLH.postRecordCommand", ["sh", "-c", cmdStr]);
+        }
+
+        if (root.copyPathToClipboard) {
+            console.log("[ScreenRecorderDaemon] Copying path to clipboard: " + videoPath);
+            Proc.runCommand("screenRecorderLH.copyPath", ["dms", "cl", "copy", videoPath]);
         }
 
         if (root.openVideoOnFinish) {
